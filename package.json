@@ -1,0 +1,29 @@
+{
+  "name": "react-rx-tools",
+  "version": "1.0.0",
+  "main": "./lib/index.js",
+  "author": {
+    "email": "alex.skakun@me.com",
+    "name": "Aleksey Skakun",
+    "url": "https://github.com/alex-skakun"
+  },
+  "repository": {
+    "url": "https://github.com/alex-skakun/react-rx-tools"
+  },
+  "license": "MIT",
+  "scripts": {
+    "prebuild": "rm -rf ./dist",
+    "build": "node_modules/.bin/tsc",
+    "postbuild": "node tools/dist-files.js",
+    "prerelease": "npm run build",
+    "release": "npm publish ./dist --tag latest --access public"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.39",
+    "typescript": "^4.5.5"
+  },
+  "dependencies": {
+    "react": "^17.0.2",
+    "rxjs": "^7.5.2"
+  }
+}
