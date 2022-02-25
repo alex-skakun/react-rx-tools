@@ -33,7 +33,7 @@ const UserPanel = () => {
 
 ## Component `<RenderAsync />`
 
-The purpose of this component is very similar to useObservable(), but with some differences:
+The purpose of this component is very similar to `useObservable()`, but with some differences:
 
 1. The component works not only with `Observable`, but also with `ObservableInput`. 
    This allows it to be applied in a more flexible way.
