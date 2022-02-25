@@ -1,7 +1,8 @@
-import React, { ReactElement, useMemo } from 'react';
+import { ReactElement, useMemo } from 'react';
 import { from, ObservableInput } from 'rxjs';
 import { isDefined } from './helpers/isDefined';
 import { useObservable } from './useObservable';
+
 
 type RenderObservableProps<T> = {
   source: ObservableInput<T>;

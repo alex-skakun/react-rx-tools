@@ -1,5 +1,4 @@
-react-rx-tools
-==============
+# react-rx-tools
 
 An easy-to-use toolkit for React.js that lets you use RxJS observables directly in your components.
 
