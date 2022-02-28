@@ -1,24 +1,35 @@
-import { ReactElement, useMemo } from 'react';
+import { ReactElement, ReactNode, useMemo } from 'react';
 import { from, ObservableInput } from 'rxjs';
 import { isDefined } from './helpers/isDefined';
 import { useObservable } from './useObservable';
 
 
-type RenderObservableProps<T> = {
+type RenderAsyncDefinedOnlyProps<T> = {
   source: ObservableInput<T>;
-  definedOnly?: boolean;
-  children: (value: T) => ReactElement;
+  definedOnly: true;
+  children: (value: T) => ReactNode;
 };
 
-export function RenderAsync<T>({ source, definedOnly = false, children }: RenderObservableProps<T>): ReactElement {
+type RenderAsyncBasicProps<T> = {
+  source: ObservableInput<T>;
+  definedOnly?: false;
+  children: (value: T | undefined | null) => ReactNode;
+};
+
+type RenderAsyncProps<T> = RenderAsyncDefinedOnlyProps<T> | RenderAsyncBasicProps<T>;
+
+export function RenderAsync<T>(props: RenderAsyncBasicProps<T>): ReactElement | null;
+export function RenderAsync<T>(props: RenderAsyncDefinedOnlyProps<T>): ReactElement | null;
+
+export function RenderAsync<T>({ source, definedOnly, children }: RenderAsyncProps<T>): ReactElement | null {
   let value$ = useMemo(() => from(source), [source]);
   let value = useObservable(value$);
 
   return useMemo(() => {
     if (definedOnly) {
-      return isDefined(value) && children(value);
+      return isDefined(value) ? (children(value) ?? null) : null;
     } else {
-      return children(value);
+      return children(value as T) ?? null;
     }
-  }, [value, definedOnly]);
+  }, [value, definedOnly]) as ReactElement | null;
 }

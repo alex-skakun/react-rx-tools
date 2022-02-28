@@ -4,6 +4,7 @@
 .npmignore
 tsconfig.json
 package-lock.json
+jest.config.js
 dist
 node_modules
 src

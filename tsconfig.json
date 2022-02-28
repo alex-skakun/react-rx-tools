@@ -8,10 +8,13 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "declaration": true,
-    "jsx": "react"
+    "jsx": "react",
+    "strict": true
   },
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "**/*.test.tsx",
+    "**/*.test.ts"
   ],
   "include": [
     "src"
