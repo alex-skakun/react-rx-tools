@@ -7,13 +7,13 @@ import { useObservable } from './useObservable';
 type RenderAsyncDefinedOnlyProps<T> = {
   source: ObservableInput<T>;
   definedOnly: true;
-  children: (value: T) => ReactNode;
+  children: (value: NonNullable<T>) => ReactNode;
 };
 
 type RenderAsyncBasicProps<T> = {
   source: ObservableInput<T>;
   definedOnly?: false;
-  children: (value: T | undefined | null) => ReactNode;
+  children: (value: T | undefined) => ReactNode;
 };
 
 type RenderAsyncProps<T> = RenderAsyncDefinedOnlyProps<T> | RenderAsyncBasicProps<T>;
@@ -29,7 +29,7 @@ export function RenderAsync<T>({ source, definedOnly, children }: RenderAsyncPro
     if (definedOnly) {
       return isDefined(value) ? (children(value) ?? null) : null;
     } else {
-      return children(value as T) ?? null;
+      return children(value as NonNullable<T>) ?? null;
     }
   }, [value, definedOnly]) as ReactElement | null;
 }

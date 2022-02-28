@@ -1,7 +1,7 @@
 import { mount, ReactWrapper } from 'enzyme';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { useObservable } from './useObservable';
 
 
@@ -9,7 +9,11 @@ describe('useObservable', () => {
   let wrapper: ReactWrapper;
 
   afterEach(() => {
-    act(() => void wrapper.unmount());
+    act(() => {
+      if (wrapper.length) {
+        wrapper.unmount();
+      }
+    });
   });
 
   it('should provide updated value from observable', () => {
@@ -38,5 +42,34 @@ describe('useObservable', () => {
     expect(span.text()).toBe('1');
     act(() => subject$.next(2));
     expect(span.text()).toBe('2');
+  });
+
+  it('should subscribe after mounting', () => {
+    const fn = jest.fn();
+    const observable$ = new Observable<string>(fn);
+    const TestComponent = () => {
+      const value = useObservable(observable$);
+      return <span>{value}</span>;
+    };
+    wrapper = mount(<TestComponent/>);
+
+    // two calls are expected: first - reading current value, second - real subscription
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
+
+  it('should unsubscribe after unmounting', () => {
+    const fn = jest.fn();
+    const observable$ = new Observable<string>(() => {
+      return fn;
+    });
+    const TestComponent = () => {
+      const value = useObservable(observable$);
+      return <span>{value}</span>;
+    };
+    wrapper = mount(<TestComponent/>);
+    wrapper.unmount();
+
+    // two calls are expected: first -  after reading current value, second - real unsubscribing
+    expect(fn).toHaveBeenCalledTimes(2);
   });
 });

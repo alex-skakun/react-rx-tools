@@ -37,7 +37,7 @@ describe('RenderAsync', () => {
   });
 
   it('should not render when data is null or undefined if definedOnly is used', () => {
-    const subject$ = new BehaviorSubject<number>(0);
+    const subject$ = new BehaviorSubject<number | null>(null);
     const TestComponent = () => (
       <RenderAsync source={subject$} definedOnly>
         { data => <>
