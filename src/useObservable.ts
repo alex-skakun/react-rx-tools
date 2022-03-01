@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { distinctUntilChanged, Observable } from 'rxjs';
-import { getCurrentFromObservable } from './helpers/getCurrentFromObservable';
+import { getCurrentFromObservable } from './helpers';
+
 
 
 export function useObservable<T>(obs$: Observable<T>): T | undefined {

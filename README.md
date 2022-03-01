@@ -12,7 +12,6 @@ When an observable emits new data component will be updated.
 ```typescript jsx
 import React from 'react';
 import { useObservable } from 'react-rx-tools';
-
 import { userDataService } from './userData';
 
 
@@ -52,7 +51,6 @@ The purpose of this component is very similar to `useObservable()`, but with som
 ```typescript jsx
 import React from 'react';
 import { RenderAsync } from 'react-rx-tools';
-
 import { userDataService } from './userData';
 
 
@@ -67,6 +65,44 @@ const UserPanel = () => {
     </> }
   </RenderAsync>;
 };
+```
+
+## Helper functions
+
+### `isDefined()`
+
+Returns true if passed value is not `null` or `undefined`. Also, it confirms that passed value is `NonNullable`.
+
+```typescript
+import { isDefined } from './react-rx-tools';
+
+
+type Point = null | {
+  x: number;
+  y: number;
+};
+
+export function handlePoint(point: Point): void {
+  if (isDefined(point)) {
+    // point is not null and it is known for TypeScript compiler
+  } else {
+    // point is null
+  }
+}
+```
+
+### `getCurrentFromObservable()`
+
+If an observable synchronously emits data on subscribe, this function helps to get it in simple way.
+
+```typescript
+import { getCurrentFromObservable } from './react-rx-tools';
+import { userDataService } from './userData';
+
+
+const data = getCurrentFromObservable(userDataService.userData$);
+
+// data will be UserData or undefined
 ```
 
 ## License
