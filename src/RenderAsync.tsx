@@ -1,6 +1,6 @@
 import { ReactElement, ReactNode, useMemo } from 'react';
 import { from, ObservableInput } from 'rxjs';
-import { isDefined } from './helpers/isDefined';
+import { isDefined } from './helpers';
 import { useObservable } from './useObservable';
 
 
@@ -25,11 +25,9 @@ export function RenderAsync<T>({ source, definedOnly, children }: RenderAsyncPro
   let value$ = useMemo(() => from(source), [source]);
   let value = useObservable(value$);
 
-  return useMemo(() => {
-    if (definedOnly) {
-      return isDefined(value) ? (children(value) ?? null) : null;
-    } else {
-      return children(value as NonNullable<T>) ?? null;
-    }
-  }, [value, definedOnly]) as ReactElement | null;
+  if (definedOnly) {
+    return ((isDefined(value) && children(value)) ?? null) as ReactElement | null;
+  } else {
+    return (children(value as NonNullable<T>) ?? null) as ReactElement | null;
+  }
 }

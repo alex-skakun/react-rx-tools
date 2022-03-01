@@ -11,6 +11,7 @@
     "url": "https://github.com/alex-skakun/react-rx-tools"
   },
   "license": "MIT",
+  "keywords": ["rxjs", "react", "tools", "observable", "reactive", "rx", "useObservable", "RenderAsync"],
   "scripts": {
     "prebuild": "rm -rf ./dist",
     "build": "node_modules/.bin/tsc",
