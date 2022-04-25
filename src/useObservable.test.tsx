@@ -2,7 +2,7 @@ import { mount, ReactWrapper } from 'enzyme';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
-import { useObservable } from './useObservable';
+import useObservable from './useObservable';
 
 
 describe('useObservable', () => {
@@ -72,4 +72,5 @@ describe('useObservable', () => {
     // two calls are expected: first -  after reading current value, second - real unsubscribing
     expect(fn).toHaveBeenCalledTimes(2);
   });
+
 });

@@ -4,7 +4,7 @@ An easy-to-use toolkit for React.js that lets you use RxJS observables directly 
 
 ## Custom hook `useObservable()`
 
-This custom hook allows you to retrieve data from observable in a familiar and simple way for React.js. 
+This custom hook allows you to retrieve data from observable in a familiar and simple way for React.js.
 When an observable emits new data component will be updated.
 
 ### Example
@@ -19,13 +19,44 @@ const UserPanel = () => {
   // component will be rerendered when userDataService.userData$ provides new userData
   const userData = useObservable(userDataService.userData$);
 
-  return <>
-    {
-      userData.isGuest
-        ? <a href="/login">Login</a>
-        : <a href="/account">{ userData.email }</a>
-    }
-  </>;
+  return userData.isGuest
+    ? <a href="/login">Login</a>
+    : <a href="/account">{ userData.email }</a>;
+};
+```
+
+## Custom hooks `useDidMount()` and `useWillUnmount()`
+
+These hooks provide observables that emit only once after component did mount and before component will unmount.
+
+### Example
+
+```typescript jsx
+import React, { useCallback, useMemo } from 'react';
+import { skipUntil, takeUntil } from 'rxjs';
+import { useDidMount, useWillUnmount } from 'react-rx-tools';
+import { confirmationDialog } from 'src/dialogs';
+
+
+const CloseButton = () => {
+  const didMount$ = useDidMount();
+  const willUnmount$ = useWillUnmount();
+  const data$ = useMemo(() => extremelyOftenData$.pipe(skipUntil(didMount$)), []);
+
+  const onClick = useCallback(() => {
+    confirmationDialog('Are you sure?', 'All unsaved changes will be lost.')
+      .pipe(
+        takeUntil(willUnmount$)
+      )
+      .subscribe(choice => {
+        // analyze user's choice
+      });
+  }, []);
+
+  return <div>
+    <span></span>
+    <button type="button" onClick={onClick}>Close</button>
+  </div>;
 };
 ```
 
@@ -56,13 +87,10 @@ import { userDataService } from './userData';
 
 const UserPanel = () => {
   return <RenderAsync source={userDataService.userData$} definedOnly>
-    { userData => <>
-      {
-        userData.isGuest
-          ? <a href="/login">Login</a>
-          : <a href="/account">{ userData.email }</a>
-      }
-    </> }
+    { userData => userData.isGuest
+      ? <a href="/login">Login</a>
+      : <a href="/account">{ userData.email }</a> 
+    }
   </RenderAsync>;
 };
 ```
@@ -71,7 +99,7 @@ const UserPanel = () => {
 
 ### `isDefined()`
 
-Returns true if passed value is not `null` or `undefined`. Also, it confirms that passed value is `NonNullable`.
+Returns true if passed value is not `null` or `undefined`. Also, this function is type guard, it confirms that passed value is `NonNullable`.
 
 ```typescript
 import { isDefined } from './react-rx-tools';
@@ -84,7 +112,7 @@ type Point = null | {
 
 export function handlePoint(point: Point): void {
   if (isDefined(point)) {
-    // point is not null and it is known for TypeScript compiler
+    // point is not null and has type NonNullable<Point>
   } else {
     // point is null
   }

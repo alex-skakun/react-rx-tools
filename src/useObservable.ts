@@ -1,15 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { distinctUntilChanged, Observable } from 'rxjs';
-import { getCurrentFromObservable } from './helpers';
+import getCurrentFromObservable from './helpers/getCurrentFromObservable';
 
 
-
-export function useObservable<T>(obs$: Observable<T>): T | undefined {
-  let initialValue = useMemo(() => getCurrentFromObservable(obs$), [obs$]);
-  let [value, setValue] = useState<T | undefined>(initialValue);
+export default function useObservable<T>(obs$: Observable<T>): T | undefined {
+  const initialValue = useMemo(() => getCurrentFromObservable(obs$), [obs$]);
+  const [value, setValue] = useState<T | undefined>(initialValue);
 
   useEffect(() => {
-    let subscription = obs$
+    const subscription = obs$
       .pipe(distinctUntilChanged())
       .subscribe(value => setValue(value));
 
