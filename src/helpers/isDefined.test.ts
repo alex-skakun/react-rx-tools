@@ -1,7 +1,8 @@
-import { isDefined } from './isDefined';
+import isDefined from './isDefined';
 
 
 describe('isDefined()', () => {
+
   it('should return false for null', () => {
     expect(isDefined(null)).toBe(false);
   });
@@ -26,4 +27,5 @@ describe('isDefined()', () => {
     expect(isDefined(true)).toBe(true);
     expect(isDefined(false)).toBe(true);
   });
+
 });
