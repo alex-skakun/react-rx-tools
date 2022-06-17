@@ -1,52 +1,45 @@
-import { mount, ReactWrapper } from 'enzyme';
-import React from 'react';
-import { act } from 'react-dom/test-utils';
 import { BehaviorSubject, Subject } from 'rxjs';
-import RenderAsync from './RenderAsync';
+import { render, act } from '@testing-library/react';
+import { Render$ } from './Render$';
 
 
 describe('RenderAsync', () => {
-  let wrapper: ReactWrapper;
-
-  afterEach(() => {
-    act(() => void wrapper.unmount());
-  });
 
   it('should render when data is not provided', () => {
     const subject$ = new Subject();
     const TestComponent = () => (
-      <RenderAsync source={subject$}>
+      <Render$ $={subject$}>
         {data => <>
           {expect(data).toBeUndefined()}
         </>}
-      </RenderAsync>
+      </Render$>
     );
-    wrapper = mount(<TestComponent/>);
+    render(<TestComponent/>);
   });
 
   it('should render when data is null', () => {
     const subject$ = new BehaviorSubject(null);
     const TestComponent = () => (
-      <RenderAsync source={subject$}>
+      <Render$ $={subject$}>
         {data => <>
           {expect(data).toBeNull()}
         </>}
-      </RenderAsync>
+      </Render$>
     );
-    wrapper = mount(<TestComponent/>);
+    render(<TestComponent/>);
   });
 
   it('should not render when data is null or undefined if definedOnly is used', () => {
     const subject$ = new BehaviorSubject<number | null>(null);
     const observable$ = subject$.asObservable();
     const TestComponent = () => (
-      <RenderAsync source={observable$} definedOnly>
+      <Render$ $={observable$} definedOnly>
         {data => <>
           {expect(data).toBe(1)}
         </>}
-      </RenderAsync>
+      </Render$>
     );
-    wrapper = mount(<TestComponent/>);
+    render(<TestComponent/>);
     act(() => subject$.next(1));
   });
 

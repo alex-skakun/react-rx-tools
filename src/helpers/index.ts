@@ -1,2 +1,1 @@
-export * from './getCurrentFromObservable';
-export * from './isDefined';
+export { default as isDefined } from './isDefined';

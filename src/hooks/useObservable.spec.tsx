@@ -1,47 +1,36 @@
-import { mount, ReactWrapper } from 'enzyme';
-import React from 'react';
-import { act } from 'react-dom/test-utils';
+import { act, render, screen } from '@testing-library/react';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
-import useObservable from './useObservable';
+import { useObservable } from './useObservable';
 
 
-describe('useObservable', () => {
-  let wrapper: ReactWrapper;
-
-  afterEach(() => {
-    act(() => {
-      if (wrapper.length) {
-        wrapper.unmount();
-      }
-    });
-  });
+describe('useObservable()', () => {
 
   it('should provide updated value from observable', () => {
     const subject$ = new Subject<number>();
     const TestComponent = () => {
       const value = useObservable(subject$);
-      return <span>{value ? value : 'none'}</span>;
+      return <span data-testid="valueContainer">{value ? value : 'none'}</span>;
     };
-    wrapper = mount(<TestComponent/>);
-    const span = wrapper.find('span');
+    render(<TestComponent/>);
+    const span = screen.getByTestId('valueContainer');
 
-    expect(span.text()).toBe('none');
+    expect(span.textContent).toBe('none');
     act(() => subject$.next(1));
-    expect(span.text()).toBe('1');
+    expect(span.textContent).toBe('1');
   });
 
   it('should provide initial value from observable and then update it', () => {
     const subject$ = new BehaviorSubject<number>(1);
     const TestComponent = () => {
       const value = useObservable(subject$);
-      return <span>{value}</span>;
+      return <span data-testid="valueContainer">{value}</span>;
     };
-    wrapper = mount(<TestComponent/>);
-    const span = wrapper.find('span');
+    render(<TestComponent/>);
+    const span = screen.getByTestId('valueContainer');
 
-    expect(span.text()).toBe('1');
+    expect(span.textContent).toBe('1');
     act(() => subject$.next(2));
-    expect(span.text()).toBe('2');
+    expect(span.textContent).toBe('2');
   });
 
   it('should subscribe after mounting', () => {
@@ -51,10 +40,9 @@ describe('useObservable', () => {
       const value = useObservable(observable$);
       return <span>{value}</span>;
     };
-    wrapper = mount(<TestComponent/>);
+    render(<TestComponent/>);
 
-    // two calls are expected: first - reading current value, second - real subscription
-    expect(fn).toHaveBeenCalledTimes(2);
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 
   it('should unsubscribe after unmounting', () => {
@@ -66,11 +54,10 @@ describe('useObservable', () => {
       const value = useObservable(observable$);
       return <span>{value}</span>;
     };
-    wrapper = mount(<TestComponent/>);
-    wrapper.unmount();
+    const container = render(<TestComponent/>);
+    container.unmount();
 
-    // two calls are expected: first -  after reading current value, second - real unsubscribing
-    expect(fn).toHaveBeenCalledTimes(2);
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 
 });
