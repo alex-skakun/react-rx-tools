@@ -12,3 +12,6 @@ export { useObservable } from './hooks/useObservable';
 export { useValueChange } from './hooks/useValueChange';
 export { useSubject } from './hooks/useSubject';
 export { useRxEffect } from './hooks/useRxEffect';
+
+// utils
+export { makeReactFriendly } from './utils/makeReactFriendly';

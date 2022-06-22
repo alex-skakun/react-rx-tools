@@ -1,6 +1,6 @@
 import { ReactElement, ReactNode } from 'react';
 import { from, ObservableInput } from 'rxjs';
-import isDefined from '../helpers/isDefined';
+import { isDefined } from 'value-guards';
 import { useObservable } from '../hooks/useObservable';
 
 

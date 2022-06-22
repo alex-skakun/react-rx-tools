@@ -72,21 +72,26 @@ Promise.all([
           ]);
       }),
     )
-      .then(entries => Object.fromEntries(entries))
-      .then(localDependencies => {
-        delete packageJson.localDevDependencies;
+      .then(entries => {
+        packageJson.dependencies = packageJson.dependencies ?? {};
+        packageJson.devDependencies = packageJson.devDependencies ?? {};
 
-        packageJson.dependencies = {
-          ...(packageJson.dependencies ?? {}),
-          ...localDependencies,
-        };
+        entries.forEach(([packageName, version]) => {
+          packageJson.dependencies[packageName] = version;
+          delete packageJson.devDependencies[packageName];
+        });
+
+        if (!Object.keys(packageJson.devDependencies)) {
+          delete packageJson.devDependencies;
+        }
 
         return packageJson;
-      });
+      })
   })
   .then(packageJson => {
     delete packageJson.scripts;
     delete packageJson.config;
+    delete packageJson.localDevDependencies;
 
     return {
       ...packageJson,

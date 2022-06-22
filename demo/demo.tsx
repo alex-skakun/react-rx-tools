@@ -45,7 +45,6 @@ function Demo() {
 }
 
 function FPS() {
-  const redraws$ = useRxEffect();
   const fps = useObservable(() => {
     return animationFrames().pipe(
       buffer(interval(1000)),
@@ -53,7 +52,7 @@ function FPS() {
     );
   });
 
-  return <>{fps}/<Output$ $={redraws$}/></>;
+  return <>{fps}</>;
 }
 
 type CapturePoint = {
@@ -170,10 +169,10 @@ function fromMoving() {
 
 function fromReleasing() {
   return merge(
-    fromEvent(document.body, 'mouseup'),
-    fromEvent(document.body, 'contextmenu'),
-    fromEvent(document.body, 'touchend'),
-    fromEvent(document.body, 'touchcancel'),
+    fromEvent(document, 'mouseup'),
+    fromEvent(document, 'contextmenu'),
+    fromEvent(document, 'touchend'),
+    fromEvent(document, 'touchcancel'),
     fromEvent(document, 'mouseleave'),
     fromEvent(window, 'blur'),
   )
