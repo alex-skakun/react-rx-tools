@@ -1,12 +1,13 @@
 import { BehaviorSubject, MonoTypeOperatorFunction, Observable, pipe, ReplaySubject, share } from 'rxjs';
+import { isNonEmptyArray } from 'value-guards';
 
 
-export function makeReactFriendly<T>(source: Observable<T>): Observable<T>;
-export function makeReactFriendly<T>(source: Observable<T>, initialValue: T): Observable<T>;
-export function makeReactFriendly<T>(): MonoTypeOperatorFunction<T>;
-export function makeReactFriendly<T>(initialValue: T): MonoTypeOperatorFunction<T>;
+export function multicastForUI<T>(source: Observable<T>): Observable<T>;
+export function multicastForUI<T>(source: Observable<T>, initialValue: T): Observable<T>;
+export function multicastForUI<T>(): MonoTypeOperatorFunction<T>;
+export function multicastForUI<T>(initialValue: T): MonoTypeOperatorFunction<T>;
 
-export function makeReactFriendly<T>(
+export function multicastForUI<T>(
   ...args: [sourceOrInitial?: Observable<T> | T, initialValue?: T]
 ): Observable<T> | MonoTypeOperatorFunction<T> {
   if (isFactoryUsage<T>(args)) {
@@ -25,9 +26,7 @@ export function makeReactFriendly<T>(
     return pipe(
       share<T>({
         connector: () => {
-          return isInitialValuePassedIntoOperator(args)
-            ? new BehaviorSubject<T>(args[0]) :
-            new ReplaySubject<T>(1);
+          return isNonEmptyArray(args) ? new BehaviorSubject<T>(args[0]) : new ReplaySubject<T>(1);
         },
       }),
     );
@@ -52,10 +51,4 @@ function isInitialValuePassedIntoFactory<T>(
   args: [source: Observable<T>, initialValue?: T],
 ): args is [source: Observable<T>, initialValue: T] {
   return args.length > 1;
-}
-
-function isInitialValuePassedIntoOperator<T>(
-  args: [initialValue?: T],
-): args is [initialValue: T] {
-  return !!args.length;
 }

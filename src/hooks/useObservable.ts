@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useFunction, useOnce } from 'react-cool-hooks';
 import { distinctUntilChanged, Observable } from 'rxjs';
+import { isFunction } from 'value-guards';
 import { useSubscription } from './useSubscription';
 
 
@@ -30,7 +31,7 @@ function isObservable<T>(args: [
 function isObservableFactory<T>(args: [
   observableOrFactory: Observable<T> | (() => Observable<T>),
 ]): args is [observableFactory: () => Observable<T>] {
-  return args.length === 1 && typeof args[0] === 'function';
+  return args.length === 1 && isFunction(args[0]);
 }
 
 function observableHook<T>(observable: Observable<T>): T | undefined {

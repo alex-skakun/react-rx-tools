@@ -19,7 +19,8 @@
     "reactive",
     "rx",
     "useObservable",
-    "RenderAsync"
+    "useSubject",
+    "useSubscription"
   ],
   "config": {
     "localRegistry": "http://localhost:4873"

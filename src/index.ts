@@ -14,4 +14,4 @@ export { useSubject } from './hooks/useSubject';
 export { useRxEffect } from './hooks/useRxEffect';
 
 // utils
-export { makeReactFriendly } from './utils/makeReactFriendly';
+export { multicastForUI } from './utils/multicastForUI';

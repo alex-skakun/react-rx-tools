@@ -1,3 +1,4 @@
+import { ChangeEvent } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   animationFrames,
@@ -12,12 +13,13 @@ import {
   race,
   repeat,
   sample,
+  startWith,
   switchMap,
   take,
   takeUntil,
   tap,
 } from 'rxjs';
-import { Output$, useObservable, useRxEffect, useRxRef, useSubscription } from '../src';
+import { Output$, useObservable, useRxEffect, useRxEvent, useRxRef, useSubscription } from '../src';
 
 
 const root = createRoot(document.getElementById('demoTest')!);
@@ -26,7 +28,12 @@ root.render(<Demo/>);
 
 function Demo() {
   const [ref$, ref] = useRxRef<HTMLDivElement>();
+  const [change$, onChange] = useRxEvent<ChangeEvent<HTMLSelectElement>>();
   const redraws$ = useRxEffect();
+  const type = useObservable(() => change$.pipe(
+    map(event => event.currentTarget.value),
+    startWith('square'),
+  ));
 
   useSubscription(() => ref$.pipe(
     switchMap(element => fromDragging(
@@ -38,9 +45,22 @@ function Demo() {
     element.style.transform = `translate3d(${translateX}px, ${translateY}px, 0px)`;
   }));
 
-  return <div id="square" ref={ref}>
+  return <div>
     <div><span>FPS: </span><FPS/></div>
     <div><span>Draws: </span><Output$ $={redraws$}/></div>
+    <div>
+      <label htmlFor="figureTypeSelect">Type: </label>
+      <select id="figureTypeSelect" onChange={onChange}>
+        <option value="square" selected>Square</option>
+        <option value="circle">Circle</option>
+      </select>
+    </div>
+
+    {
+      type === 'square'
+        ? <div id="square" ref={ref}/>
+        : <div id="circle" ref={ref}/>
+    }
   </div>;
 }
 
@@ -63,6 +83,8 @@ type CapturePoint = {
 };
 
 function fromDragging<T extends Element>(element: T, onCapture: () => void, onRelease: () => void) {
+  const { x: startX, y: startY } = element.getBoundingClientRect();
+
   return fromCapturing(element)
     .pipe(
       tap(onCapture),
@@ -71,8 +93,8 @@ function fromDragging<T extends Element>(element: T, onCapture: () => void, onRe
           map(movePoint => ({
             ...capturePoint,
             ...movePoint,
-            translateX: movePoint.x - capturePoint.captureX,
-            translateY: movePoint.y - capturePoint.captureY,
+            translateX: movePoint.x - capturePoint.captureX - startX,
+            translateY: movePoint.y - capturePoint.captureY - startY,
             element,
           })),
           takeUntil(fromReleasing().pipe(tap(onRelease))),

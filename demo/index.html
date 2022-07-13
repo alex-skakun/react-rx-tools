@@ -14,7 +14,10 @@
             margin: 0;
             min-height: 100%;
         }
-        #square {
+        #circle {
+            border-radius: 50%;
+        }
+        #square, #circle {
             position: absolute;
             block-size: 100px;
             inline-size: 100px;
@@ -30,7 +33,7 @@
             user-select: none;
             transition: outline .2s ease, background-color .1s linear, box-shadow .2s ease;
         }
-        #square.moving {
+        :is(#square, #circle).moving {
             background-color: red;
             outline: thin solid #000;
             outline-offset: -1px;

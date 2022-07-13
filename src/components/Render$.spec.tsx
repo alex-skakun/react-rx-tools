@@ -3,7 +3,7 @@ import { render, act } from '@testing-library/react';
 import { Render$ } from './Render$';
 
 
-describe('RenderAsync', () => {
+describe('<Render$ />', () => {
 
   it('should render when data is not provided', () => {
     const subject$ = new Subject();
