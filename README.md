@@ -272,6 +272,26 @@ export function Test(): JSX.Element {
 }
 ```
 
+It's possible to pass a mapper function into the hook, 
+that will transform event into other value.
+
+```typescript jsx
+import { useRxEvent, useSubscription } from 'react-rx-tools';
+
+
+export function Test({ dx }: { dx: number }): JSX.Element {
+  const [click$, onClick] = useRxEvent(event => {
+    return event.clientX + dx;
+  });
+
+  useSubscription(() => click$.subscribe(x => {
+    // x is number value, sum of clientX and actual value of prop dx
+  }));
+
+  return <SomeJSX onClick={onClick}/>;
+}
+```
+
 ## Custom hook `useValueChange()`
 
 This hook is kinda technical tool. It allows to integrate props or any other values into observables.

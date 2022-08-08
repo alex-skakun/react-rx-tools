@@ -39,6 +39,56 @@
             outline-offset: -1px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, .7);
         }
+        .accordion-content {
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        @media screen and (prefers-reduced-motion: no-preference) {
+            .accordion-content {
+                transition: height .2s ease;
+            }
+        }
+
+        .slide-view {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+        }
+        .slide-view .slides {
+            flex: 0 0 auto;
+            display: grid;
+            grid-auto-flow: column;
+            grid-auto-columns: 100%;
+            gap: 0;
+            width: 100%;
+            transition: none;
+        }
+        .slide-view:is(.effect-next, .effect-previous) .slides {
+            width: 200%;
+            grid-auto-columns: 50%;
+            transition: transform .3s ease;
+        }
+
+        .slide-view:is(.effect-next, .effect-previous) .slide {
+            pointer-events: none;
+        }
+        .slide-view.effect-next {
+            justify-content: flex-start;
+        }
+        .slide-view.effect-previous {
+            justify-content: flex-end;
+        }
+        .slide-view.effect-next .slides {
+            transform: translateX(-50%);
+        }
+        .slide-view.effect-previous .slides {
+            transform: translateX(50%);
+        }
+        .slide-view .slides .slide {
+            box-sizing: border-box;
+            margin: 0;
+        }
     </style>
 </head>
 <body>

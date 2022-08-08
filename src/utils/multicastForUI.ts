@@ -32,7 +32,7 @@ export function multicastForUI<T>(
     );
   }
 
-  throw new Error(`makeReactFriendly: Unknown list of arguments.\n${args.join('\n')}`);
+  throw new Error(`multicastForUI: Unknown list of arguments.\n${args.join('\n')}`);
 }
 
 function isFactoryUsage<T>(

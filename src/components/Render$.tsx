@@ -20,6 +20,7 @@ type RenderAsyncProps<T> = RenderAsyncDefinedOnlyProps<T> | RenderAsyncBasicProp
 
 export function Render$<T>(props: RenderAsyncBasicProps<T>): ReactElement | null;
 export function Render$<T>(props: RenderAsyncDefinedOnlyProps<T>): ReactElement | null;
+
 export function Render$<T>({ $: source, definedOnly, children }: RenderAsyncProps<T>): ReactElement | null {
   const value = useObservable(() => from(source));
 
@@ -31,3 +32,5 @@ export function Render$<T>({ $: source, definedOnly, children }: RenderAsyncProp
     return null;
   }
 }
+
+Render$.displayName = 'Render$';

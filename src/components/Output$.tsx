@@ -13,3 +13,5 @@ export function Output$({ $: source }: OutputObservableProps): ReactElement {
 
   return <>{value}</>;
 }
+
+Output$.displayName = 'Output$';
