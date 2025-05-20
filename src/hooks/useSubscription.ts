@@ -1,12 +1,19 @@
-import { useRef } from 'react';
 import { useFunction, useOnce } from 'react-cool-hooks';
 import { Observable, of, Subscription, switchMap, takeUntil } from 'rxjs';
 import { useDidMount } from './useDidMount';
-import { useRxRef } from './useRxRef';
 import { useWillUnmount } from './useWillUnmount';
+import { isFunction, isNonEmptyRecord } from 'value-guards';
+import { useValueChange } from './useValueChange';
 
+export type SubscriptionFactory = {
+  (): Subscription;
+};
 
-type UseSubscriptionConfig = {
+export type MultiSubscriptionFactory<T extends Observable<any>> = {
+  (source: T): Subscription;
+};
+
+export type UseSubscriptionConfig = {
   immediate: boolean;
 };
 
@@ -15,11 +22,20 @@ type UseSubscriptionConfig = {
  * Unsubscribes automatically when component will unmount or received updated dependencies.
  * Optionally allows to subscribe immediately (before hook "componentDidMount").
  */
-export function useSubscription<T extends Observable<any>>($: T): ((callback: ($: T) => Subscription) => void);
-export function useSubscription(callback: () => Subscription, config?: UseSubscriptionConfig): void;
 export function useSubscription<T extends Observable<any>>(
-  ...args: [callbackOrObservable: (() => Subscription) | T, config?: UseSubscriptionConfig]
-): void | ((callback: ($: T) => Subscription) => void) {
+  source: T,
+  callback: MultiSubscriptionFactory<T>,
+  config?: UseSubscriptionConfig,
+): void;
+export function useSubscription(callback: SubscriptionFactory, config?: UseSubscriptionConfig): void;
+
+export function useSubscription<T extends Observable<any>>(
+  ...args: [
+    callbackOrObservable: SubscriptionFactory | T,
+    callbackOrConfig?: UseSubscriptionConfig | MultiSubscriptionFactory<T>,
+    config?: UseSubscriptionConfig
+  ]
+): void {
   if (isMultiUse<T>(args)) {
     return multiUseHook(...args);
   } else if (isOnceUse<T>(args)) {
@@ -28,48 +44,62 @@ export function useSubscription<T extends Observable<any>>(
 }
 
 function isMultiUse<T extends Observable<any>>(
-  args: [callbackOrObservable: (() => Subscription) | T, config?: UseSubscriptionConfig],
-): args is [T] {
-  return args.length === 1 && args[0] instanceof Observable;
+  args: [
+    callbackOrObservable: SubscriptionFactory | T,
+    callbackOrConfig?: UseSubscriptionConfig | MultiSubscriptionFactory<T>,
+    config?: UseSubscriptionConfig
+  ],
+): args is [T, MultiSubscriptionFactory<T>, UseSubscriptionConfig?] {
+  return (args.length >= 2 && args.length <= 3)
+    && args[0] instanceof Observable
+    && isFunction(args[1])
+    && (args[2] === undefined || isNonEmptyRecord(args[2]));
 }
 
 function isOnceUse<T extends Observable<any>>(
-  args: [callbackOrObservable: (() => Subscription) | T, config?: UseSubscriptionConfig],
-): args is [callback: () => Subscription, config?: UseSubscriptionConfig] {
-  return (args.length >= 1 && args.length <= 2) &&
-    typeof args[0] === "function";
+  args: [
+    callbackOrObservable: SubscriptionFactory | T,
+    callbackOrConfig?: UseSubscriptionConfig | MultiSubscriptionFactory<T>,
+    config?: UseSubscriptionConfig
+  ],
+): args is [SubscriptionFactory, UseSubscriptionConfig?] {
+  return (args.length >= 1 && args.length <= 2)
+    && isFunction(args[0])
+    && (args[1] === undefined || isNonEmptyRecord(args[1]));
 }
 
-function multiUseHook<T extends Observable<any>>(observable: T): ((callback: ($: T) => Subscription) => void) {
+function multiUseHook<T extends Observable<any>>(
+  observable: T,
+  callback: MultiSubscriptionFactory<T>,
+  config?: UseSubscriptionConfig
+): void {
+  const didMount$ = useDidMount();
   const willUnmount$ = useWillUnmount();
-  const [source$, setSource] = useRxRef<T>();
-  const callbackRef = useRef<($: T) => Subscription>();
+  const source$ = useValueChange(observable);
+  const wrappedCallback = useFunction<MultiSubscriptionFactory<T>>(callback);
   const toSubObservable = useFunction((sourceObservable: T) => new Observable(() => {
-    const sub = callbackRef.current!(sourceObservable);
+    const sub = wrappedCallback(sourceObservable);
 
     return () => sub.unsubscribe();
   }));
 
   useOnce(() => {
-    source$
+    (config?.immediate ? of(undefined) : didMount$)
       .pipe(
+        switchMap(() => source$),
         switchMap(toSubObservable),
         takeUntil(willUnmount$),
       )
       .subscribe();
   });
-
-  return (callback: ($: T) => Subscription): void => {
-    callbackRef.current = callback;
-    setSource(observable);
-  };
 }
 
-function onceUseHook(callback: () => Subscription, config?: UseSubscriptionConfig): void {
+function onceUseHook(callback: SubscriptionFactory, config?: UseSubscriptionConfig): void {
   const didMount$ = useDidMount();
   const willUnmount$ = useWillUnmount();
+  const wrappedCallback = useFunction(callback);
   const toSubObservable = useFunction(() => new Observable(() => {
-    const sub = callback();
+    const sub = wrappedCallback();
 
     return () => sub.unsubscribe();
   }));

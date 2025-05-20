@@ -1,7 +1,5 @@
-import { useEffect } from 'react';
-import { useOnce } from 'react-cool-hooks';
+import { useOnce, useUnmountEffect } from 'react-cool-hooks';
 import { Observable, Subject } from 'rxjs';
-
 
 /**
  * @summary Provides an observable for lifecycle hook "componentWillUnmount"
@@ -10,10 +8,10 @@ import { Observable, Subject } from 'rxjs';
 export function useWillUnmount(): Observable<void> {
   const subject = useOnce(() => new Subject<void>());
 
-  useEffect(() => () => {
+  useUnmountEffect(() => {
     subject.next();
     subject.complete();
-  }, []);
+  });
 
   return useOnce(() => subject.asObservable());
 }

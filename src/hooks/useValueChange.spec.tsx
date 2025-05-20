@@ -1,9 +1,9 @@
-import { act, fireEvent, render, renderHook, screen } from '@testing-library/react';
-import { useCallback, useState } from 'react';
+import { fireEvent, render, renderHook } from '@testing-library/react';
+import { act, useCallback, useState } from 'react';
 import { Observable } from 'rxjs';
 import { useSubscription } from './useSubscription';
 import { useValueChange } from './useValueChange';
-
+import { describe, expect, it, mock } from 'bun:test';
 
 describe('useValueChange()', () => {
 
@@ -16,7 +16,7 @@ describe('useValueChange()', () => {
   });
 
   it('should emit new values', () => {
-    const fn = jest.fn();
+    const fn = mock();
     const Test = () => {
       const [value, setValue] = useState(1);
       const value$ = useValueChange(value);
@@ -31,10 +31,10 @@ describe('useValueChange()', () => {
       return <button data-testid="test" type="button" onClick={onClick}>Click</button>;
     };
 
-    render(<Test/>);
+    const { getByTestId } = render(<Test/>);
     expect(fn).toHaveBeenCalledWith(1);
     act(() => {
-      fireEvent.click(screen.getByTestId('test'));
+      fireEvent.click(getByTestId('test'));
     });
     expect(fn).toHaveBeenCalledWith(2);
   });

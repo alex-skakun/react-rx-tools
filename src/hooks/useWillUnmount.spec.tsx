@@ -1,12 +1,12 @@
 import { renderHook } from '@testing-library/react';
 import { useEffect } from 'react';
 import { useWillUnmount } from './useWillUnmount';
-
+import { describe, expect, it, mock } from 'bun:test';
 
 describe('useWillUnmount()', () => {
 
   it('should emit before component unmounted', () => {
-    const nextCallback = jest.fn();
+    const nextCallback = mock();
 
     renderHook(() => {
       const willUnmount$ = useWillUnmount();
@@ -26,7 +26,7 @@ describe('useWillUnmount()', () => {
   });
 
   it('should complete before component unmounted', () => {
-    const completeCallback = jest.fn();
+    const completeCallback = mock();
 
     renderHook(() => {
       const willUnmount$ = useWillUnmount();

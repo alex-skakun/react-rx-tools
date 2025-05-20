@@ -1,14 +1,14 @@
-import { render } from '@testing-library/react';
-import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
-import { useObservable } from './useObservable';
 import { describe, expect, it, mock } from 'bun:test';
+import { BehaviorSubject, Observable, of, ReplaySubject, Subject } from 'rxjs';
+import { render, renderHook } from '@testing-library/react';
 import { act, Fragment } from 'react';
+import { useTransitionObservable } from './useTransitionObservable';
 
-describe('useObservable()', () => {
+describe('useTransitionObservable()', () => {
   it('should provide updated value from observable', () => {
     const subject$ = new Subject<number>();
     const TestComponent = () => {
-      const value = useObservable(subject$);
+      const [, value] = useTransitionObservable(subject$);
       return <span data-testid="valueContainer">{value ? value : 'none'}</span>;
     };
     const { container } = render(<TestComponent/>);
@@ -26,7 +26,7 @@ describe('useObservable()', () => {
     subject$.next(3);
 
     const TestComponent = () => {
-      const value = useObservable(subject$);
+      const [, value] = useTransitionObservable(subject$);
       return <span data-testid="valueContainer">{value ? value : 'none'}</span>;
     };
 
@@ -39,7 +39,7 @@ describe('useObservable()', () => {
   it('should provide initial value from observable and then update it', () => {
     const subject$ = new BehaviorSubject<number>(1);
     const TestComponent = () => {
-      const value = useObservable(subject$);
+      const [, value] = useTransitionObservable(subject$);
       return <span data-testid="valueContainer">{value}</span>;
     };
     const { container } = render(<TestComponent/>);
@@ -54,7 +54,7 @@ describe('useObservable()', () => {
     const fn = mock();
     const observable$ = new Observable<string>(fn);
     const TestComponent = () => {
-      const value = useObservable(observable$);
+      const [, value] = useTransitionObservable(observable$);
       return <span>{value}</span>;
     };
     render(<TestComponent/>);
@@ -68,7 +68,7 @@ describe('useObservable()', () => {
       return fn;
     });
     const TestComponent = () => {
-      const value = useObservable(observable$);
+      const [, value] = useTransitionObservable(observable$);
       return <span>{value}</span>;
     };
     const container = render(<TestComponent/>);
@@ -80,13 +80,21 @@ describe('useObservable()', () => {
   it('create observable from factory only once', () => {
     const fn = mock(() => new Subject());
     const TestComponent = () => {
-      useObservable(fn);
+      useTransitionObservable(fn);
       return <Fragment/>;
     };
     const { rerender } = render(<TestComponent/>);
 
-    rerender(<TestComponent/>)
+    rerender(<TestComponent/>);
 
     expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it('return pending state', () => {
+    const { result } = renderHook(() => {
+      return useTransitionObservable(() => of(null));
+    });
+
+    expect(result.current[0]).toBeFalse();
   });
 });

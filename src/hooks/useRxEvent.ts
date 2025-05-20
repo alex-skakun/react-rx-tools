@@ -5,7 +5,7 @@ import { useFunction, useOnce } from 'react-cool-hooks';
 import { useSubject } from './useSubject';
 
 
-interface SyntheticEventListener<E extends SyntheticEvent> extends CallableFunction {
+export interface SyntheticEventListener<E extends SyntheticEvent> extends CallableFunction {
   (event: E): void;
 }
 

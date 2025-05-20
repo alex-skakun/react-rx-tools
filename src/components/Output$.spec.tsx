@@ -1,6 +1,8 @@
-import { act, render } from '@testing-library/react';
+import {render } from '@testing-library/react';
+import { act } from 'react';
 import { BehaviorSubject, NEVER, of, Subject } from 'rxjs';
 import { Output$ } from './Output$';
+import { describe, expect, it } from 'bun:test';
 
 
 describe('<Output$ />', () => {

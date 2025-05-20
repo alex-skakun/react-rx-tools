@@ -22,47 +22,35 @@
     "useSubject",
     "useSubscription"
   ],
-  "config": {
-    "localRegistry": "http://localhost:4873"
-  },
   "scripts": {
-    "start": "webpack-dev-server",
-    "test": "npx jest",
-    "test:coverage": "npx jest --coverage",
-    "updateLocals": "node ./tools/updateLocalDependencies.mjs",
-    "build": "npm run build:cjs && npm run build:esm",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "build": "bun run ./tools/index.ts build ./dist",
     "prebuild": "rimraf ./dist",
-    "postbuild": "node ./tools/completePackage.mjs",
-    "build:cjs": "echo 'Building CommonJS version' && tsc -p ./tsconfig.cjs.json --pretty",
-    "build:esm": "echo 'Building ESModule version' && tsc -p ./tsconfig.esm.json --pretty",
     "prerelease": "npm run build",
-    "release": "npm publish ./dist --tag latest --access public",
-    "prerelease:dev": "npm run build && (npm unpublish --registry $npm_package_config_localRegistry --force || true)",
-    "release:dev": "npm publish ./dist --registry $npm_package_config_localRegistry"
+    "release": "bun run ./tools/index.ts publish ./dist"
   },
-  "localDevDependencies": [
-    "react-cool-hooks",
-    "value-guards"
-  ],
+  "dependencies": {
+    "react-cool-hooks": "1.1.1",
+    "value-guards": "1.1.0"
+  },
   "peerDependencies": {
-    "react": "16.x.x - 18.x.x",
-    "rxjs": "^7.5.5"
+    "@types/react": ">=19.0.0",
+    "@types/react-dom": ">=19.0.0",
+    "react": ">=19.0.0",
+    "react-dom": ">=19.0.0",
+    "rxjs": ">=7.5.5"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^5.16.4",
-    "@testing-library/react": "^13.3.0",
-    "@types/react": "^18.0.13",
-    "@types/react-dom": "^18.0.3",
-    "html-webpack-plugin": "^5.5.0",
-    "jest-environment-jsdom": "^28.1.1",
-    "react-cool-hooks": "^1.0.2",
-    "react-dom": "^18.1.0",
-    "ts-jest": "^28.0.5",
-    "ts-loader": "^9.3.0",
-    "typescript": "^4.7.3",
-    "value-guards": "^1.0.0",
-    "webpack": "^5.72.0",
-    "webpack-cli": "^4.9.2",
-    "webpack-dev-server": "^4.8.1"
+    "@happy-dom/global-registrator": "17.4.7",
+    "@inquirer/prompts": "7.5.1",
+    "@testing-library/react": "16.3.0",
+    "@types/bun": "1.2.13",
+    "bun-types": "1.2.13",
+    "chalk": "5.4.1",
+    "commander": "13.1.0",
+    "rimraf": "6.0.1",
+    "type-fest": "4.41.0",
+    "typescript": "5.8.3"
   }
 }
