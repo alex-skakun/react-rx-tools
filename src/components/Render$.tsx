@@ -1,35 +1,43 @@
-import { ReactElement, ReactNode } from 'react';
+import { Fragment, ReactElement, ReactNode, useMemo } from 'react';
 import { from, ObservableInput } from 'rxjs';
 import { isDefined } from 'value-guards';
-import { useObservable } from '../hooks/useObservable';
+import { useTransitionObservable } from '../hooks/useTransitionObservable';
 
-
-type RenderAsyncDefinedOnlyProps<T> = {
-  $: ObservableInput<T>;
+export type RenderAsyncDefinedOnlyProps<T> = {
   definedOnly: true;
-  children: (value: NonNullable<T>) => ReactNode;
-};
-
-type RenderAsyncBasicProps<T> = {
   $: ObservableInput<T>;
-  definedOnly?: false;
-  children: (value: T | undefined) => ReactNode;
+  fallback?: ReactNode;
+  children: (value: NonNullable<T>, pending: boolean) => ReactNode;
 };
 
-type RenderAsyncProps<T> = RenderAsyncDefinedOnlyProps<T> | RenderAsyncBasicProps<T>;
+export type RenderAsyncBasicProps<T> = {
+  definedOnly?: false;
+  $: ObservableInput<T>;
+  fallback?: ReactNode;
+  children: (value: T | undefined, pending: boolean) => ReactNode;
+};
+
+export type RenderAsyncProps<T> = RenderAsyncDefinedOnlyProps<T> | RenderAsyncBasicProps<T>;
 
 export function Render$<T>(props: RenderAsyncBasicProps<T>): ReactElement | null;
 export function Render$<T>(props: RenderAsyncDefinedOnlyProps<T>): ReactElement | null;
 
-export function Render$<T>({ $: source, definedOnly, children }: RenderAsyncProps<T>): ReactElement | null {
-  const value = useObservable(() => from(source));
+export function Render$<T>({ $: source, definedOnly, fallback, children }: RenderAsyncProps<T>): ReactElement | null {
+  const observable = useMemo(() => from(source), [source]);
+  const [pending, value] = useTransitionObservable(observable);
 
   if (definedOnly) {
-    return ((isDefined(value) && children(value)) ?? null) as ReactElement | null;
-  } else if (children) {
-    return (children(value) ?? null) as ReactElement | null;
+    return (
+      <Fragment>
+        {isDefined(value) ? (children(value, pending) ?? fallback ?? null) : (fallback ?? null)}
+      </Fragment>
+    );
   } else {
-    return null;
+    return (
+      <Fragment>
+        {children(value, pending) ?? fallback ?? null}
+      </Fragment>
+    );
   }
 }
 

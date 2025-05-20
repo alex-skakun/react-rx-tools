@@ -1,9 +1,9 @@
-import { act, fireEvent, render, renderHook, screen } from '@testing-library/react';
-import { MouseEvent } from 'react';
+import { fireEvent, render, renderHook } from '@testing-library/react';
+import { act, MouseEvent } from 'react';
 import { Observable, skip, take } from 'rxjs';
 import { useRxEvent } from './useRxEvent';
 import { useSubscription } from './useSubscription';
-
+import { describe, expect, it } from 'bun:test';
 
 describe('useRxEvent()', () => {
 
@@ -27,16 +27,16 @@ describe('useRxEvent()', () => {
       return <button data-testid="test" type="button" onClick={onClick}>Click</button>;
     };
 
-    render(<Test/>);
+    const { getByTestId } = render(<Test/>);
 
     act(() => {
-      fireEvent.click(screen.getByTestId('test'));
+      fireEvent.click(getByTestId('test'));
     });
   });
 
   it('should transform event to event type', () => {
     const Test = () => {
-      const [click$, onClick] = useRxEvent<MouseEvent, string>(event => event.type);
+      const [click$, onClick] = useRxEvent<MouseEvent, string>((event) => event.type);
 
       useSubscription(() => click$.subscribe((type) => {
         expect(type).toBe('click');
@@ -45,10 +45,10 @@ describe('useRxEvent()', () => {
       return <button data-testid="test" type="button" onClick={onClick}>Click</button>;
     };
 
-    render(<Test/>);
+    const { getByTestId } = render(<Test/>);
 
     act(() => {
-      fireEvent.click(screen.getByTestId('test'));
+      fireEvent.click(getByTestId('test'));
     });
   });
 
@@ -67,16 +67,16 @@ describe('useRxEvent()', () => {
       return <button data-testid="test" type="button" onClick={onClick}>Click</button>;
     };
 
-    const { rerender } = render(<Test p1="firstValue"/>);
+    const { rerender, getByTestId } = render(<Test p1="firstValue"/>);
 
     act(() => {
-      fireEvent.click(screen.getByTestId('test'));
+      fireEvent.click(getByTestId('test'));
     });
 
     rerender(<Test p1="secondValue"/>);
 
     act(() => {
-      fireEvent.click(screen.getByTestId('test'));
+      fireEvent.click(getByTestId('test'));
     });
   });
 

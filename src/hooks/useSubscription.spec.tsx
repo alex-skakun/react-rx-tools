@@ -2,12 +2,12 @@ import { renderHook } from '@testing-library/react';
 import { useEffect } from 'react';
 import { Observable, Subject, Subscription } from 'rxjs';
 import { useSubscription } from './useSubscription';
-
+import { describe, expect, it, mock, spyOn } from 'bun:test';
 
 describe('useSubscription()', () => {
 
   it('should invoke passed callback immediately, when immediate=true', () => {
-    const callback = jest.fn(() => new Subscription());
+    const callback = mock(() => new Subscription());
 
     renderHook(() => {
       useSubscription(callback, { immediate: true });
@@ -16,7 +16,7 @@ describe('useSubscription()', () => {
   });
 
   it('should invoke passed callback after mount, when immediate=false', () => {
-    const callback = jest.fn(() => new Subscription());
+    const callback = mock(() => new Subscription());
 
     renderHook(() => {
       useSubscription(callback);
@@ -28,7 +28,7 @@ describe('useSubscription()', () => {
   });
 
   it('should not invoke callback again when component rerender', () => {
-    const callback = jest.fn(() => new Subscription());
+    const callback = mock(() => new Subscription());
 
     const { rerender } = renderHook(() => {
       useSubscription(callback);
@@ -42,10 +42,10 @@ describe('useSubscription()', () => {
   it('should invoke callback again, after source observable change', () => {
 
     const initialProps = { source$: new Subject() };
-    const callback = jest.fn((obs: Observable<unknown>) => obs.subscribe());
+    const callback = mock((obs: Observable<unknown>) => obs.subscribe());
 
     const { rerender } = renderHook(({ source$ }: { source$: Observable<unknown> }) => {
-      useSubscription(source$)(callback);
+      useSubscription(source$, callback);
     }, { initialProps });
 
     expect(callback).toHaveBeenCalledTimes(1);
@@ -57,7 +57,7 @@ describe('useSubscription()', () => {
 
   it('should unsubscribe before unmount', () => {
     const subscription = new Subscription();
-    const unsubscribeSpy = jest.spyOn(subscription, 'unsubscribe');
+    const unsubscribeSpy = spyOn(subscription, 'unsubscribe');
     const callback = () => subscription;
 
     renderHook(() => {
@@ -71,13 +71,13 @@ describe('useSubscription()', () => {
 
   it('should unsubscribe when dependency change', () => {
     const subscriptions = [new Subscription(), new Subscription(), new Subscription()];
-    const unmountSpy = jest.spyOn(subscriptions[0], 'unsubscribe');
-    const unsubscribeSpy2 = jest.spyOn(subscriptions[1], 'unsubscribe');
-    const unsubscribeSpy1 = jest.spyOn(subscriptions[2], 'unsubscribe');
+    const unmountSpy = spyOn(subscriptions[0], 'unsubscribe');
+    const unsubscribeSpy2 = spyOn(subscriptions[1], 'unsubscribe');
+    const unsubscribeSpy1 = spyOn(subscriptions[2], 'unsubscribe');
     const callback = () => subscriptions.pop()!;
 
     const { rerender, unmount } = renderHook(({ $ }: { $: Observable<void> }) => {
-      useSubscription($)(callback);
+      useSubscription($, callback);
     }, { initialProps: { $: new Subject<void>() } });
 
     expect(unsubscribeSpy1).toHaveBeenCalledTimes(0);

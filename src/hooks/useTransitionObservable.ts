@@ -1,15 +1,12 @@
-import { useRef, useState } from 'react';
-import { useFunction, useMountEffect, useOnce } from 'react-cool-hooks';
 import { distinctUntilChanged, Observable } from 'rxjs';
-import { useSubscription } from './useSubscription';
 import { isObservableArgument, isObservableFactoryArgument } from '../internal';
+import { useFunction, useMountEffect, useOnce } from 'react-cool-hooks';
+import { useRef, useState, useTransition } from 'react';
+import { useSubscription } from './useSubscription';
 
-/**
- * @summary Provides actual value from passed observable.
- */
-export function useObservable<T>(observable: Observable<T>): T | undefined;
-export function useObservable<T>(observableFactory: () => Observable<T>): T | undefined;
-export function useObservable<T>(...args: [Observable<T> | (() => Observable<T>)]): T | undefined {
+export function useTransitionObservable<T>(observable: Observable<T>): [boolean, T | undefined];
+export function useTransitionObservable<T>(observableFactory: () => Observable<T>): [boolean, T | undefined];
+export function useTransitionObservable<T>(...args: [Observable<T> | (() => Observable<T>)]): [boolean, T | undefined] {
   if (isObservableArgument(args)) {
     return observableHook(...args);
   }
@@ -18,16 +15,19 @@ export function useObservable<T>(...args: [Observable<T> | (() => Observable<T>)
     return observableFactoryHook(...args);
   }
 
-  return undefined;
+  return [false, undefined];
 }
 
-function observableHook<T>(observable: Observable<T>): T | undefined {
+function observableHook<T>(observable: Observable<T>): [boolean, T | undefined] {
   const mountRef = useRef(false);
   const valueRef = useRef<T>(undefined);
+  const [pending, startTransition] = useTransition();
   const [, setValue] = useState<T>();
   const updateState = useFunction((value: T) => {
     if (mountRef.current) {
-      setValue(value);
+      startTransition(() => {
+        setValue(value);
+      });
     }
 
     valueRef.current = value;
@@ -45,10 +45,10 @@ function observableHook<T>(observable: Observable<T>): T | undefined {
       .subscribe((newValue) => updateState(newValue));
   }, { immediate: true });
 
-  return valueRef.current;
+  return [pending, valueRef.current];
 }
 
-function observableFactoryHook<T>(observableFactory: () => Observable<T>): T | undefined {
+function observableFactoryHook<T>(observableFactory: () => Observable<T>): [boolean, T | undefined] {
   const observable = useOnce(observableFactory);
 
   return observableHook(observable);

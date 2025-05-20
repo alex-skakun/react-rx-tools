@@ -1,12 +1,12 @@
 import { renderHook } from '@testing-library/react';
 import { useEffect } from 'react';
 import { useDidMount } from './useDidMount';
-
+import { describe, expect, it, mock } from 'bun:test';
 
 describe('useDidMount()', () => {
 
   it('should emit after component mounted', () => {
-    const nextCallback = jest.fn();
+    const nextCallback = mock();
 
     renderHook(() => {
       const didMount$ = useDidMount();
@@ -22,7 +22,7 @@ describe('useDidMount()', () => {
   });
 
   it('should complete before component unmount', () => {
-    const completeCallback = jest.fn();
+    const completeCallback = mock();
 
     renderHook(() => {
       const didMount$ = useDidMount();
@@ -42,7 +42,7 @@ describe('useDidMount()', () => {
   });
 
   it('should replay for late subscriber', () => {
-    const nextCallback = jest.fn();
+    const nextCallback = mock();
 
     renderHook(async () => {
       const didMount$ = useDidMount();

@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { Subject } from 'rxjs';
 import { useSubject } from './useSubject';
-
+import { describe, expect, it, mock } from 'bun:test';
 
 describe('useSubject()', () => {
 
@@ -20,13 +20,13 @@ describe('useSubject()', () => {
   });
 
   it('should complete after unmount', () => {
-    const completeSpy = jest.fn();
+    const completeSpy = mock();
     const { result, unmount } = renderHook(() => {
       return useSubject(() => new Subject<void>());
     });
 
     result.current.subscribe({
-      complete: completeSpy
+      complete: completeSpy,
     });
 
     unmount();

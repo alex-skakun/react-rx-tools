@@ -1,18 +1,14 @@
 import { useEffect } from 'react';
 import { useOnce } from 'react-cool-hooks';
-import { map, Observable, startWith, Subject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { useSubject } from './useSubject';
 
-
 export function useRxEffect(): Observable<number> {
-  const subject = useSubject(() => new Subject<void>());
-  const effect$ = useOnce(() => subject.pipe(
-    map((_, index) => index + 1),
-    startWith(0),
-  ));
+  const subject = useSubject(() => new BehaviorSubject<number>(0));
+  const effect$ = useOnce(() => subject.asObservable());
 
   useEffect(() => {
-    subject.next();
+    subject.next(subject.getValue() + 1);
   });
 
   return effect$;
