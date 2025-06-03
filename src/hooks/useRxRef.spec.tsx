@@ -1,8 +1,8 @@
 import { render, renderHook } from '@testing-library/react';
-import { Observable, toArray } from 'rxjs';
+import { Observable, switchMap, toArray } from 'rxjs';
 import { useRxRef } from './useRxRef';
 import { useSubscription } from './useSubscription';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it, mock } from 'bun:test';
 
 describe('useRxRef()', () => {
 
@@ -72,6 +72,33 @@ describe('useRxRef()', () => {
     expect(ref.current).toBe('one more test');
 
     unmount();
+  });
+
+  it('teardown sub observables when ref changes or destroys', () => {
+    const subscribeCallback = mock();
+    const unsubscribeCallback = mock();
+    const obs$ = new Observable(() => {
+      subscribeCallback();
+
+      return () => unsubscribeCallback();
+    });
+
+    const { result, unmount } = renderHook(() => {
+      const [ref$, ref] = useRxRef<string>();
+
+      useSubscription(() => ref$.pipe(switchMap(() => obs$)).subscribe(), { immediate: true });
+
+      return ref;
+    });
+
+    result.current('first');
+    expect(subscribeCallback).toHaveBeenCalledTimes(1);
+    expect(unsubscribeCallback).toHaveBeenCalledTimes(0);
+    result.current('second');
+    expect(subscribeCallback).toHaveBeenCalledTimes(2);
+    expect(unsubscribeCallback).toHaveBeenCalledTimes(1);
+    unmount();
+    expect(unsubscribeCallback).toHaveBeenCalledTimes(2);
   });
 
 });

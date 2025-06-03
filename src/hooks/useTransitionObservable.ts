@@ -1,17 +1,16 @@
-import { distinctUntilChanged, Observable } from 'rxjs';
-import { isObservableArgument, isObservableFactoryArgument } from '../internal';
-import { useFunction, useMountEffect, useOnce } from 'react-cool-hooks';
+import { Observable } from 'rxjs';
+import { _isObservableArgument, _isObservableFactoryArgument, _useObservableInternals } from '../internal';
+import { useOnce } from 'react-cool-hooks';
 import { useRef, useState, useTransition } from 'react';
-import { useSubscription } from './useSubscription';
 
 export function useTransitionObservable<T>(observable: Observable<T>): [boolean, T | undefined];
 export function useTransitionObservable<T>(observableFactory: () => Observable<T>): [boolean, T | undefined];
 export function useTransitionObservable<T>(...args: [Observable<T> | (() => Observable<T>)]): [boolean, T | undefined] {
-  if (isObservableArgument(args)) {
+  if (_isObservableArgument(args)) {
     return observableHook(...args);
   }
 
-  if (isObservableFactoryArgument(args)) {
+  if (_isObservableFactoryArgument(args)) {
     return observableFactoryHook(...args);
   }
 
@@ -19,33 +18,22 @@ export function useTransitionObservable<T>(...args: [Observable<T> | (() => Obse
 }
 
 function observableHook<T>(observable: Observable<T>): [boolean, T | undefined] {
-  const mountRef = useRef(false);
-  const valueRef = useRef<T>(undefined);
   const [pending, startTransition] = useTransition();
-  const [, setValue] = useState<T>();
-  const updateState = useFunction((value: T) => {
-    if (mountRef.current) {
-      startTransition(() => {
-        setValue(value);
-      });
-    }
-
-    valueRef.current = value;
+  const [internalValue, setValue] = useState<T>();
+  const lastUsedValue = useRef<T>(undefined);
+  const internalStateRef = _useObservableInternals(observable, (newValue) => {
+    startTransition(() => {
+      setValue(newValue);
+    });
   });
 
-  useMountEffect(() => {
-    mountRef.current = true;
-  });
+  const actualValue = internalStateRef.valuesBuffer.size > 0
+    ? internalStateRef.valuesBuffer.dissolve()!
+    : (pending ? lastUsedValue.current : internalValue);
 
-  useSubscription(observable, (observable) => {
-    return observable
-      .pipe(
-        distinctUntilChanged(),
-      )
-      .subscribe((newValue) => updateState(newValue));
-  }, { immediate: true });
+  lastUsedValue.current = actualValue;
 
-  return [pending, valueRef.current];
+  return [pending, actualValue];
 }
 
 function observableFactoryHook<T>(observableFactory: () => Observable<T>): [boolean, T | undefined] {

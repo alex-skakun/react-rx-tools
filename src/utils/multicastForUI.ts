@@ -13,6 +13,8 @@ export function multicastForUI<T>(
   if (isFactoryUsage<T>(args)) {
     return args[0].pipe(
       share<T>({
+        resetOnComplete: false,
+        resetOnRefCountZero: false,
         connector: () => {
           return isInitialValuePassedIntoFactory(args)
             ? new BehaviorSubject<T>(args[1])
@@ -25,6 +27,8 @@ export function multicastForUI<T>(
   if (isOperatorUsage<T>(args)) {
     return pipe(
       share<T>({
+        resetOnComplete: false,
+        resetOnRefCountZero: false,
         connector: () => {
           return isNonEmptyArray(args) ? new BehaviorSubject<T>(args[0]) : new ReplaySubject<T>(1);
         },
