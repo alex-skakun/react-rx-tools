@@ -76,6 +76,37 @@ describe('useTransitionObservable()', () => {
     expect(result.current).toBe(3);
     await Promise.resolve();
     expect(result.current).toBe(6);
+    expect(renderCounter).toBe(3);
+  });
+
+  it('return cached value if source observable does not emit new events and component rerenders', () => {
+    const subject1$ = new BehaviorSubject<string>('test');
+
+    const { result, rerender } = renderHook(() => {
+      const [, r] = useTransitionObservable(subject1$);
+
+      return r;
+    });
+
+    expect(result.current).toEqual('test');
+    act(() => rerender());
+    expect(result.current).toEqual('test');
+  });
+
+  it('return cached value if source observable does not emit new events and another hook triggers render', () => {
+    const subject1$ = new BehaviorSubject<string>('test');
+    const subject2$ = new BehaviorSubject<number>(1);
+
+    const { result } = renderHook(() => {
+      const [, r1] = useTransitionObservable(subject1$);
+      const [, r2] = useTransitionObservable(subject2$);
+
+      return { r1, r2 } as const;
+    });
+
+    expect(result.current).toEqual({ r1: 'test', r2: 1 });
+    act(() => subject2$.next(2));
+    expect(result.current).toEqual({ r1: 'test', r2: 2 });
   });
 
   it('should provide initial value from observable and then update it', () => {

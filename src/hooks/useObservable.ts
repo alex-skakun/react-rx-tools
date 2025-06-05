@@ -21,14 +21,17 @@ export function useObservable<T>(...args: [Observable<T> | (() => Observable<T>)
 }
 
 function observableHook<T>(observable: Observable<T>): T | undefined {
-  const [internalValue, setValue] = useState<T>();
-  const internalStateRef = _useObservableInternals(observable, (newValue) => {
+  const internalStateRef = _useObservableInternals(observable, (newValue, callback) => {
     setValue(newValue);
+    callback();
   });
+  const [internalValue, setValue] = useState<T>(internalStateRef.valueCache as T);
 
-  return internalStateRef.valuesBuffer.size > 0
-    ? internalStateRef.valuesBuffer.dissolve()!
-    : internalValue;
+  if (internalStateRef.valuesBuffer.size > 0) {
+    return internalStateRef.valuesBuffer.dissolve()!;
+  }
+
+  return internalStateRef.reactStateUsed ? internalValue : internalStateRef.valueCache;
 }
 
 function observableFactoryHook<T>(observableFactory: () => Observable<T>): T | undefined {

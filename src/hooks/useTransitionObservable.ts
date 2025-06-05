@@ -19,21 +19,22 @@ export function useTransitionObservable<T>(...args: [Observable<T> | (() => Obse
 
 function observableHook<T>(observable: Observable<T>): [boolean, T | undefined] {
   const [pending, startTransition] = useTransition();
-  const [internalValue, setValue] = useState<T>();
-  const lastUsedValue = useRef<T>(undefined);
-  const internalStateRef = _useObservableInternals(observable, (newValue) => {
+  const internalStateRef = _useObservableInternals(observable, (newValue, callback) => {
     startTransition(() => {
       setValue(newValue);
+      callback();
     });
   });
+  const [internalValue, setValue] = useState<T>(internalStateRef.valueCache as T);
 
-  const actualValue = internalStateRef.valuesBuffer.size > 0
-    ? internalStateRef.valuesBuffer.dissolve()!
-    : (pending ? lastUsedValue.current : internalValue);
+  if (internalStateRef.valuesBuffer.size > 0) {
+    return [pending, internalStateRef.valuesBuffer.dissolve()!];
+  }
 
-  lastUsedValue.current = actualValue;
-
-  return [pending, actualValue];
+  return [
+    pending,
+    internalStateRef.reactStateUsed ? internalValue : internalStateRef.valueCache
+  ];
 }
 
 function observableFactoryHook<T>(observableFactory: () => Observable<T>): [boolean, T | undefined] {

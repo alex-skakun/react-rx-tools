@@ -71,6 +71,34 @@ describe('useObservable()', () => {
     expect(result.current).toBe(6);
   });
 
+  it('return cached value if source observable does not emit new events and component rerenders', () => {
+    const subject1$ = new BehaviorSubject<string>('test');
+
+    const { result, rerender } = renderHook(() => {
+      return useObservable(subject1$);
+    });
+
+    expect(result.current).toEqual('test');
+    act(() => rerender());
+    expect(result.current).toEqual('test');
+  });
+
+  it('return cached value if source observable does not emit new events and another hook triggers render', () => {
+    const subject1$ = new BehaviorSubject<string>('test');
+    const subject2$ = new BehaviorSubject<number>(1);
+
+    const { result } = renderHook(() => {
+      const r1 = useObservable(subject1$);
+      const r2 = useObservable(subject2$);
+
+      return { r1, r2 } as const;
+    });
+
+    expect(result.current).toEqual({ r1: 'test', r2: 1 });
+    act(() => subject2$.next(2));
+    expect(result.current).toEqual({ r1: 'test', r2: 2 });
+  });
+
   it('should provide initial value from observable and then update it', () => {
     const subject$ = new BehaviorSubject<number>(1);
     const TestComponent = () => {

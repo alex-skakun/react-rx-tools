@@ -7,19 +7,30 @@ import { useSubscription } from '../hooks/useSubscription';
 export interface InternalObservableState<T> {
   didMount: boolean;
   valuesBuffer: Queue<T>;
+  valueCache: T | undefined;
+  reactStateUsed: boolean;
 }
 
-export function _useObservableInternals<T>(observable: Observable<T>, setStateFn: (newValue: T) => void): InternalObservableState<T> {
+export function _useObservableInternals<T>(
+  observable: Observable<T>,
+  setStateFn: (newValue: T, callback: () => void) => void
+): InternalObservableState<T> {
   const didMount$ = useDidMount();
   const internalStateRef = useOnce<InternalObservableState<T>>(() => ({
     didMount: false,
     valuesBuffer: new Queue<T>(),
+    valueCache: undefined,
+    reactStateUsed: false,
   }));
   const updateState = useFunction((newValue: T): void => {
     if (internalStateRef.didMount) {
-      setStateFn(newValue);
+      setStateFn(newValue, () => {
+        internalStateRef.valueCache = newValue;
+        internalStateRef.reactStateUsed = true;
+      });
     } else {
       internalStateRef.valuesBuffer.push(newValue);
+      internalStateRef.valueCache = newValue;
     }
   });
 
