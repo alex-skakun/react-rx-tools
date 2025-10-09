@@ -1,6 +1,6 @@
 import { fireEvent, render, renderHook } from '@testing-library/react';
 import { act, MouseEvent } from 'react';
-import { Observable, skip, take } from 'rxjs';
+import { isObservable, skip, take } from 'rxjs';
 import { useRxEvent } from './useRxEvent';
 import { useSubscription } from './useSubscription';
 import { describe, expect, it } from 'bun:test';
@@ -11,7 +11,7 @@ describe('useRxEvent()', () => {
     renderHook(() => {
       const [event$, onEvent] = useRxEvent();
 
-      expect(event$ instanceof Observable).toBeTruthy();
+      expect(isObservable(event$)).toBeTruthy();
       expect(typeof onEvent === 'function').toBeTruthy();
     });
   });

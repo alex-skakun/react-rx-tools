@@ -1,6 +1,6 @@
 import { fireEvent, render, renderHook } from '@testing-library/react';
 import { act, useCallback, useState } from 'react';
-import { Observable } from 'rxjs';
+import { isObservable } from 'rxjs';
 import { useSubscription } from './useSubscription';
 import { useValueChange } from './useValueChange';
 import { describe, expect, it, mock } from 'bun:test';
@@ -11,7 +11,7 @@ describe('useValueChange()', () => {
     renderHook(() => {
       const value$ = useValueChange(1);
 
-      expect(value$ instanceof Observable).toBeTruthy();
+      expect(isObservable(value$)).toBeTruthy();
     });
   });
 

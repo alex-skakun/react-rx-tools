@@ -1,7 +1,7 @@
 import { describe, expect, it, mock } from 'bun:test';
 import { renderHook } from '@testing-library/react';
 import { useRxFactory } from './useRxFactory';
-import { Observable } from 'rxjs';
+import { isObservable } from 'rxjs';
 import { useSubscription } from './useSubscription';
 
 describe('useRxFactory()', () => {
@@ -22,7 +22,7 @@ describe('useRxFactory()', () => {
 
     expect(subscribe).toHaveBeenCalledTimes(1);
     expect(unsubscribe).toHaveBeenCalledTimes(0);
-    expect(result.current instanceof Observable).toBeTrue();
+    expect(isObservable(result.current)).toBeTrue();
     unmount();
     expect(unsubscribe).toHaveBeenCalledTimes(1);
   });

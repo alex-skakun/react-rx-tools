@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react';
-import { map, noop, Observable, pipe, tap } from 'rxjs';
+import { map, noop, isObservable, pipe, tap } from 'rxjs';
 
 import { useRxCallback } from './useRxCallback';
 import { describe, expect, it, mock } from 'bun:test';
@@ -10,7 +10,7 @@ describe('useRxCallback', () => {
       return useRxCallback();
     });
 
-    expect(obs$ instanceof Observable).toBe(true);
+    expect(isObservable(obs$)).toBe(true);
     expect(typeof callback).toBe('function');
   });
 

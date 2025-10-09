@@ -1,5 +1,5 @@
 import { useFunction, useOnce } from 'react-cool-hooks';
-import { Observable, of, Subscription, switchMap, takeUntil } from 'rxjs';
+import { isObservable, Observable, of, Subscription, switchMap, takeUntil } from 'rxjs';
 import { useDidMount } from './useDidMount';
 import { useWillUnmount } from './useWillUnmount';
 import { isFunction, isNonEmptyRecord } from 'value-guards';
@@ -51,7 +51,7 @@ function isMultiUse<T extends Observable<any>>(
   ],
 ): args is [T, MultiSubscriptionFactory<T>, UseSubscriptionConfig?] {
   return (args.length >= 2 && args.length <= 3)
-    && args[0] instanceof Observable
+    && isObservable(args[0])
     && isFunction(args[1])
     && (args[2] === undefined || isNonEmptyRecord(args[2]));
 }

@@ -1,4 +1,4 @@
-import { BehaviorSubject, MonoTypeOperatorFunction, Observable, pipe, ReplaySubject, share } from 'rxjs';
+import { BehaviorSubject, isObservable, MonoTypeOperatorFunction, Observable, pipe, ReplaySubject, share } from 'rxjs';
 import { isNonEmptyArray } from 'value-guards';
 
 
@@ -42,7 +42,7 @@ export function multicastForUI<T>(
 function isFactoryUsage<T>(
   args: [sourceOrInitial?: Observable<T> | T, initialValue?: T],
 ): args is [source: Observable<T>, initialValue?: T] {
-  return args.length <= 2 && args[0] instanceof Observable;
+  return args.length <= 2 && isObservable(args[0]);
 }
 
 function isOperatorUsage<T>(
