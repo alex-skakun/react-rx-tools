@@ -1,5 +1,5 @@
 import { render, renderHook } from '@testing-library/react';
-import { Observable, switchMap, toArray } from 'rxjs';
+import { isObservable, Observable, switchMap, toArray } from 'rxjs';
 import { useRxRef } from './useRxRef';
 import { useSubscription } from './useSubscription';
 import { describe, expect, it, mock } from 'bun:test';
@@ -10,7 +10,7 @@ describe('useRxRef()', () => {
     renderHook(() => {
       const [ref$, ref] = useRxRef<void>();
 
-      expect(ref$ instanceof Observable).toBeTruthy();
+      expect(isObservable(ref$)).toBeTruthy();
       expect(typeof ref === 'function').toBeTruthy();
     });
   });
