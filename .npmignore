@@ -6,6 +6,7 @@
 tsconfig.json
 tsconfig.*.json
 package-lock.json
+bun.lock
 setupTests.ts
 bunfig.toml
 src

@@ -42,11 +42,10 @@ export class Queue<T> {
   }
 
   dissolve(): T | undefined {
-    let lastValue: T | undefined;
+    let lastValue: T | undefined = this.#tail?.value;
 
-    while (this.size > 0) {
-      lastValue = this.shift();
-    }
+    this.#tail = null;
+    this.#head = null;
 
     return lastValue;
   }

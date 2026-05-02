@@ -16,10 +16,10 @@ export function useRxCallback<Args extends any[], Result = Args>(pipe?: PipeFact
   const callback = useFunction<RxCallback<Args>>((...args) => subject.next(args));
   const result$ = useOnce(() => {
     const operators = isFunction(pipe)
-      ? [pipe(), share({ connector: () => new Subject<Result>() })]
+      ? [pipe(), share()]
       : [];
 
-    return subject.asObservable().pipe(...operators as [OperatorFunction<Args, Result>]);
+    return subject.pipe(...operators as [OperatorFunction<Args, Result>]);
   });
 
   return [result$, callback];

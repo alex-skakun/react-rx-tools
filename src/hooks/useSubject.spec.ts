@@ -1,11 +1,10 @@
+import { describe, expect, mock, test } from 'bun:test';
 import { renderHook } from '@testing-library/react';
 import { Subject } from 'rxjs';
 import { useSubject } from './useSubject';
-import { describe, expect, it, mock } from 'bun:test';
 
 describe('useSubject()', () => {
-
-  it('should return memoized subject', () => {
+  test('return memoized subject', () => {
     const { result, rerender } = renderHook(() => {
       return useSubject(() => new Subject<void>());
     });
@@ -19,7 +18,7 @@ describe('useSubject()', () => {
     expect(result1).toBe(result2);
   });
 
-  it('should complete after unmount', () => {
+  test('complete after unmount', () => {
     const completeSpy = mock();
     const { result, unmount } = renderHook(() => {
       return useSubject(() => new Subject<void>());
@@ -33,5 +32,4 @@ describe('useSubject()', () => {
 
     expect(completeSpy).toHaveBeenCalledTimes(1);
   });
-
 });

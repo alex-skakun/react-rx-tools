@@ -1,13 +1,12 @@
+import { describe, expect, mock, test } from 'bun:test';
 import { fireEvent, render, renderHook } from '@testing-library/react';
 import { act, useCallback, useState } from 'react';
 import { isObservable } from 'rxjs';
 import { useSubscription } from './useSubscription';
 import { useValueChange } from './useValueChange';
-import { describe, expect, it, mock } from 'bun:test';
 
 describe('useValueChange()', () => {
-
-  it('should provide an observable', () => {
+  test('returns an observable', () => {
     renderHook(() => {
       const value$ = useValueChange(1);
 
@@ -15,7 +14,7 @@ describe('useValueChange()', () => {
     });
   });
 
-  it('should emit new values', () => {
+  test('emit new values', () => {
     const fn = mock();
     const Test = () => {
       const [value, setValue] = useState(1);
@@ -38,5 +37,4 @@ describe('useValueChange()', () => {
     });
     expect(fn).toHaveBeenCalledWith(2);
   });
-
 });

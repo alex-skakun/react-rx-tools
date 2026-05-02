@@ -1,11 +1,11 @@
-import { describe, expect, it, mock } from 'bun:test';
+import { describe, expect, mock, test } from 'bun:test';
 import { act, Fragment } from 'react';
 import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
 import { render, renderHook } from '@testing-library/react';
 import { useObservable } from './useObservable';
 
 describe('useObservable()', () => {
-  it('should provide updated value from observable', () => {
+  test('provide updated value from observable', () => {
     const subject$ = new Subject<number>();
     const TestComponent = () => {
       const value = useObservable(subject$);
@@ -19,7 +19,7 @@ describe('useObservable()', () => {
     expect(span?.textContent).toBe('1');
   });
 
-  it('should provide latest value if observable emits many times on subscribe', () => {
+  test('provide latest value if observable emits many times on subscribe', () => {
     const subject$ = new ReplaySubject<number>();
     subject$.next(1);
     subject$.next(2);
@@ -36,7 +36,7 @@ describe('useObservable()', () => {
     expect(span?.textContent).toBe('3');
   });
 
-  it('update state after mount if there were additional event after initial result', async () => {
+  test('update state after mount if there were additional events after initial result', async () => {
     let renderCounter = 0;
     const subject$ = new ReplaySubject<number>();
     subject$.next(1);
@@ -71,7 +71,7 @@ describe('useObservable()', () => {
     expect(result.current).toBe(6);
   });
 
-  it('return cached value if source observable does not emit new events and component rerenders', () => {
+  test('return cached value if source observable does not emit new events and component rerenders', () => {
     const subject1$ = new BehaviorSubject<string>('test');
 
     const { result, rerender } = renderHook(() => {
@@ -83,7 +83,7 @@ describe('useObservable()', () => {
     expect(result.current).toEqual('test');
   });
 
-  it('return cached value if source observable does not emit new events and another hook triggers render', () => {
+  test('return cached value if source observable does not emit new events and another hook triggers render', () => {
     const subject1$ = new BehaviorSubject<string>('test');
     const subject2$ = new BehaviorSubject<number>(1);
 
@@ -99,7 +99,7 @@ describe('useObservable()', () => {
     expect(result.current).toEqual({ r1: 'test', r2: 2 });
   });
 
-  it('should provide initial value from observable and then update it', () => {
+  test('provide initial value from observable and then update it', () => {
     const subject$ = new BehaviorSubject<number>(1);
     const TestComponent = () => {
       const value = useObservable(subject$);
@@ -113,7 +113,7 @@ describe('useObservable()', () => {
     expect(span?.textContent).toBe('2');
   });
 
-  it('should subscribe after mounting', () => {
+  test('subscribe after mounting', () => {
     const fn = mock();
     const observable$ = new Observable<string>(fn);
     const TestComponent = () => {
@@ -125,7 +125,7 @@ describe('useObservable()', () => {
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  it('should unsubscribe after unmounting', () => {
+  test('unsubscribe after unmounting', () => {
     const fn = mock();
     const observable$ = new Observable<string>(() => {
       return fn;
@@ -140,7 +140,7 @@ describe('useObservable()', () => {
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  it('create observable from factory only once', () => {
+  test('create observable from factory only once, if there is no dependencies', () => {
     const fn = mock(() => new Subject());
     const TestComponent = () => {
       useObservable(fn);
@@ -148,8 +148,46 @@ describe('useObservable()', () => {
     };
     const { rerender } = render(<TestComponent/>);
 
-    rerender(<TestComponent/>)
+    rerender(<TestComponent/>);
 
     expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  test('create observable from factory only once, if empty dependencies passed', () => {
+    const fn = mock(() => new Subject());
+    const TestComponent = () => {
+      useObservable(fn, []);
+      return <Fragment/>;
+    };
+    const { rerender } = render(<TestComponent/>);
+
+    rerender(<TestComponent/>);
+
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  test('recreate observable from factory, if dependencies change', () => {
+    const fn = mock(() => new Subject());
+    const TestComponent = ({ value }: { value: number }) => {
+      useObservable(fn, [value]);
+      return <Fragment/>;
+    };
+    const { rerender } = render(<TestComponent value={1}/>);
+
+    rerender(<TestComponent value={2}/>);
+
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
+
+  test('throw error for unsupported set of arguments', () => {
+    expect(() => renderHook(() => (
+      useObservable(null as unknown as Observable<any>)
+    ))).toThrowError('useObservable(): Unsupported set of arguments');
+  });
+
+  test('throw error when factory returns something else than Observable', () => {
+    expect(() => renderHook(() => (
+      useObservable(() => ({}) as unknown as Observable<any>)
+    ))).toThrowError('useObservable(): Observable finished with error');
   });
 });

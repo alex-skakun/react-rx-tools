@@ -8,7 +8,7 @@ import { Observable, ReplaySubject } from 'rxjs';
  * Creates memoized observable that emits only once after component did mount.
  * Replays for each new subscriber while component lifecycle, completes before component will unmount.
  */
-export function useDidMount(): Observable<void> {
+export function useRxMount(): Observable<void> {
   const subject = useOnce(() => new ReplaySubject<void>(1));
 
   useEffect(() => {
@@ -19,3 +19,8 @@ export function useDidMount(): Observable<void> {
 
   return useOnce(() => subject.asObservable());
 }
+
+/**
+ * @deprecated  useRxMount() is preferred, useDidMount() will be removed in next major release
+ */
+export const useDidMount = useRxMount;

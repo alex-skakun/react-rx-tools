@@ -1,20 +1,19 @@
+import { describe, expect, mock, test } from 'bun:test';
 import { renderHook } from '@testing-library/react';
-import { map, noop, isObservable, pipe, tap } from 'rxjs';
-
+import { isObservable, map, noop, pipe, tap } from 'rxjs';
 import { useRxCallback } from './useRxCallback';
-import { describe, expect, it, mock } from 'bun:test';
 
 describe('useRxCallback', () => {
-  it('returns a pair of observable and function', () => {
+  test('returns a pair of observable and function', () => {
     const { result: { current: [obs$, callback] } } = renderHook(() => {
       return useRxCallback();
     });
 
-    expect(isObservable(obs$)).toBe(true);
-    expect(typeof callback).toBe('function');
+    expect(isObservable(obs$)).toBeTrue();
+    expect(callback).toBeFunction();
   });
 
-  it('callback emits args into observable', (done) => {
+  test('callback emits args into observable', (done) => {
     const { result: { current: [obs$, callback] } } = renderHook(() => {
       return useRxCallback();
     });
@@ -27,7 +26,7 @@ describe('useRxCallback', () => {
     callback(1, 'a', true);
   });
 
-  it('create operator only once', () => {
+  test('create operator only once', () => {
     const operatorFactory = mock(() => pipe(
       tap(noop),
     ));
@@ -41,7 +40,7 @@ describe('useRxCallback', () => {
     expect(operatorFactory).toHaveBeenCalledTimes(1);
   });
 
-  it('transform callback arguments though pipe', (done) => {
+  test('transform callback arguments though pipe', (done) => {
     const { result: { current: [obs$, callback] } } = renderHook(() => {
       return useRxCallback<[number, string], { value: string }>(() => pipe(
         map(([amount, value]) => ({

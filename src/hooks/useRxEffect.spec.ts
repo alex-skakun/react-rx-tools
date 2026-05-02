@@ -1,28 +1,38 @@
+import { describe, expect, mock, test } from 'bun:test';
 import { renderHook } from '@testing-library/react';
-import { take } from 'rxjs';
+import { useState } from 'react';
+import { map } from 'rxjs';
+import { RX_EFFECT_OBSERVABLE_FLAG } from '../internal';
 import { useRxEffect } from './useRxEffect';
-import { describe, expect, it, mock } from 'bun:test';
+import { useSubscription } from './useSubscription';
 
 describe('useRxEffect()', () => {
+  test('emit after each render', (done) => {
+    renderHook(() => {
+      const [, setState] = useState(0);
+      const rxEffect$ = useRxEffect();
 
-  it('should emit after each render', (done) => {
-    const { result, rerender } = renderHook(() => {
-      return useRxEffect();
-    });
+      useSubscription(() => {
+        return rxEffect$
+          .pipe(
+            map((renderNumber, index) => ({ renderNumber, index })),
+          )
+          .subscribe(({ renderNumber, index }) => {
+            if (index === 0) {
+              expect(renderNumber).toBe(1);
+              setState((v) => ++v);
+            } else if (index === 1) {
+              expect(renderNumber).toBe(2);
+              done();
+            }
+          });
+      }, { immediate: true });
 
-    result.current.pipe(take(1)).subscribe((renderNumber) => {
-      expect(renderNumber).toBe(1);
-    });
-
-    rerender();
-
-    result.current.pipe(take(1)).subscribe((renderNumber) => {
-      expect(renderNumber).toBe(2);
-      done();
+      return rxEffect$;
     });
   });
 
-  it('should complete after component unmount', (done) => {
+  test('complete after component unmount', (done) => {
     const completeSpy = mock();
     const { result, unmount } = renderHook(() => {
       return useRxEffect();
@@ -38,4 +48,12 @@ describe('useRxEffect()', () => {
     done();
   });
 
+  test('created observable is branded by special symbol', () => {
+    const { result, unmount } = renderHook(() => {
+      return useRxEffect();
+    });
+
+    expect(result.current[RX_EFFECT_OBSERVABLE_FLAG]).toBeTrue();
+    unmount();
+  });
 });

@@ -21,7 +21,7 @@ import {
 import { PackageJson } from 'type-fest';
 
 const publishFlags = () => [
-  // '--dry-run',
+  '--dry-run',
 ];
 
 export function publish(
@@ -45,8 +45,9 @@ export function publish(
               })),
               tap(() => logLikeSuccess('Version in package.json successfully updated')),
               tap(() => logLikeInfo('Publishing...')),
-              switchMap(() => (
-                rxSpawn('npm', ['publish', ...publishFlags()], { cwd: packageDir, env }).pipe(
+              switchMap(() => input({ message: 'Enter OTP code for NPM:' })),
+              switchMap((otp) => (
+                rxSpawn('npm', ['publish', `--otp=${otp}`, ...publishFlags()], { cwd: packageDir, env }).pipe(
                   catchError((error: string) => {
                     console.log(error);
                     return throwError(() => new Error('Failed to publish package'));

@@ -1,12 +1,11 @@
 import { useFunction, useOnce } from 'react-cool-hooks';
 import { distinctUntilChanged, Observable, share, Subject, Subscriber, switchMap, TeardownLogic } from 'rxjs';
 import { useValueChange } from './useValueChange';
-
-const EMPTY_DEPS: any[] = [];
+import { EMPTY_DEPS } from '../internal';
 
 export function useRxFactory<T>(
   factory: ((subscriber: Subscriber<T>) => TeardownLogic),
-  deps: any[] = EMPTY_DEPS,
+  deps: unknown[] = EMPTY_DEPS,
 ): Observable<T> {
   const wrappedFactory = useFunction(factory);
   const deps$ = useValueChange(deps);

@@ -1,41 +1,46 @@
 import { distinctUntilChanged, filter, map, mergeWith, Observable } from 'rxjs';
-import { useDidMount } from '../hooks/useDidMount';
+import { isNonPresent, isPresent, Nullish } from 'value-guards';
 import { useFunction, useOnce } from 'react-cool-hooks';
-import { Queue } from './Queue';
+import { useRxMount } from '../hooks/useRxMount';
 import { useSubscription } from '../hooks/useSubscription';
+import { Queue } from './Queue';
 
 export interface InternalObservableState<T> {
   didMount: boolean;
   valuesBuffer: Queue<T>;
   valueCache: T | undefined;
   reactStateUsed: boolean;
+  error: Nullish<unknown>;
 }
 
 export function _useObservableInternals<T>(
   observable: Observable<T>,
-  setStateFn: (newValue: T, callback: () => void) => void
+  setStateFn: (newValue: T, callback: () => void) => void,
 ): InternalObservableState<T> {
-  const didMount$ = useDidMount();
+  const mount$ = useRxMount();
   const internalStateRef = useOnce<InternalObservableState<T>>(() => ({
     didMount: false,
     valuesBuffer: new Queue<T>(),
     valueCache: undefined,
     reactStateUsed: false,
+    error: null,
   }));
   const updateState = useFunction((newValue: T): void => {
-    if (internalStateRef.didMount) {
-      setStateFn(newValue, () => {
+    if (isNonPresent(internalStateRef.error)) {
+      if (internalStateRef.didMount) {
+        setStateFn(newValue, () => {
+          internalStateRef.valueCache = newValue;
+          internalStateRef.reactStateUsed = true;
+        });
+      } else {
+        internalStateRef.valuesBuffer.push(newValue);
         internalStateRef.valueCache = newValue;
-        internalStateRef.reactStateUsed = true;
-      });
-    } else {
-      internalStateRef.valuesBuffer.push(newValue);
-      internalStateRef.valueCache = newValue;
+      }
     }
   });
 
   useSubscription(() => (
-    didMount$.subscribe(() => {
+    mount$.subscribe(() => {
       internalStateRef.didMount = true;
     })
   ), { immediate: true });
@@ -44,16 +49,25 @@ export function _useObservableInternals<T>(
     currentObservable
       .pipe(
         distinctUntilChanged(),
-        mergeWith(didMount$.pipe(
+        mergeWith(mount$.pipe(
           map(() => internalStateRef.valuesBuffer),
           filter((valuesBuffer) => valuesBuffer.size > 0),
           map((valuesBuffer) => valuesBuffer.dissolve()!),
         )),
       )
-      .subscribe((newValue) => {
-        updateState(newValue);
+      .subscribe({
+        next: (newValue) => {
+          updateState(newValue);
+        },
+        error: (err) => {
+          internalStateRef.error = err;
+        },
       })
   ), { immediate: true });
+
+  if (isPresent(internalStateRef.error)) {
+    throw internalStateRef.error;
+  }
 
   return internalStateRef;
 }

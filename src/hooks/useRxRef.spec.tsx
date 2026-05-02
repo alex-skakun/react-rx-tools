@@ -1,21 +1,20 @@
+import { describe, expect, mock, test } from 'bun:test';
 import { render, renderHook } from '@testing-library/react';
 import { isObservable, Observable, switchMap, toArray } from 'rxjs';
 import { useRxRef } from './useRxRef';
 import { useSubscription } from './useSubscription';
-import { describe, expect, it, mock } from 'bun:test';
 
 describe('useRxRef()', () => {
-
-  it('should provide an observable and ref callback', () => {
+  test('returns an observable and ref callback', () => {
     renderHook(() => {
       const [ref$, ref] = useRxRef<void>();
 
-      expect(isObservable(ref$)).toBeTruthy();
-      expect(typeof ref === 'function').toBeTruthy();
+      expect(isObservable(ref$)).toBeTrue();
+      expect(ref).toBeFunction();
     });
   });
 
-  it('should emit ref, when it is available', () => {
+  test('emit ref value, when it is available', () => {
     const container = document.createElement('div');
     const Test = () => {
       const [ref$, ref] = useRxRef<HTMLDivElement>();
@@ -30,7 +29,7 @@ describe('useRxRef()', () => {
     render(<Test/>, { container });
   });
 
-  it('should emit ref for late subscriber', () => {
+  test('emit ref value for late subscriber', () => {
     const container = document.createElement('div');
     const Test = () => {
       const [ref$, ref] = useRxRef<HTMLDivElement>();
@@ -45,7 +44,7 @@ describe('useRxRef()', () => {
     render(<Test/>, { container });
   });
 
-  it('should keep actual value in property "current"', () => {
+  test('keep actual ref value in property "current"', () => {
     const { result, unmount } = renderHook(() => {
       return useRxRef('test');
     });
@@ -74,7 +73,7 @@ describe('useRxRef()', () => {
     unmount();
   });
 
-  it('teardown sub observables when ref changes or destroys', () => {
+  test('teardown sub observables when ref changes or destroys', () => {
     const subscribeCallback = mock();
     const unsubscribeCallback = mock();
     const obs$ = new Observable(() => {
@@ -100,5 +99,4 @@ describe('useRxRef()', () => {
     unmount();
     expect(unsubscribeCallback).toHaveBeenCalledTimes(2);
   });
-
 });

@@ -5,7 +5,7 @@ import { Observable, Subject } from 'rxjs';
  * @summary Provides an observable for lifecycle hook "componentWillUnmount"
  * Creates memoized observable that emits only once and completes before component will unmount.
  */
-export function useWillUnmount(): Observable<void> {
+export function useRxUnmount(): Observable<void> {
   const subject = useOnce(() => new Subject<void>());
 
   useUnmountEffect(() => {
@@ -15,3 +15,8 @@ export function useWillUnmount(): Observable<void> {
 
   return useOnce(() => subject.asObservable());
 }
+
+/**
+ * @deprecated useRxUnmount() is preferred, useWillUnmount() will be removed in next major release
+ */
+export const useWillUnmount = useRxUnmount;

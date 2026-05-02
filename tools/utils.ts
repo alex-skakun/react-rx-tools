@@ -1,6 +1,5 @@
 import { SpawnOptions } from 'child_process';
 import { spawn } from 'node:child_process';
-import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { cwd } from 'node:process';
 
@@ -30,23 +29,25 @@ export function src(path: string): string {
 }
 
 export function readFileAsText(filePath: string): Promise<string> {
-  return readFile(src(filePath), { encoding: 'utf-8' });
+  return Bun.file(filePath).text();
 }
 
-export function writeFileAsText(filePath: string, text: string): Promise<void> {
-  return writeFile(src(filePath), text, { encoding: 'utf-8' });
+export function writeFileAsText(filePath: string, text: string): Promise<string> {
+  return Bun.write(filePath, text).then(() => text);
 }
 
 export function parsePackageJson(pathToJson: string): Promise<Record<string, any>> {
   return readFileAsText(pathToJson).then((jsonText) => JSON.parse(jsonText));
 }
 
-export function alterPackage(pathToJson: string, patch: Partial<PackageJson>): Promise<void> {
+export function alterPackage(pathToJson: string, patch: Partial<PackageJson>): Promise<string> {
   return parsePackageJson(pathToJson)
-    .then((packageJson) => ({
-      ...packageJson,
-      ...patch,
-    }))
+    .then((packageJson) => (
+      {
+        ...packageJson,
+        ...patch,
+      }
+    ))
     .then((updated) => JSON.stringify(updated, null, 2))
     .then((jsonContent) => writeFileAsText(pathToJson, jsonContent));
 }
@@ -160,13 +161,13 @@ export function rxSpawn(command: string, args: string[], options: SpawnOptions):
         )
         .subscribe(([[stdOutput, stdError], [code]]) => {
           switch (code) {
-            case 0:
-              observer.next(stdOutput);
-              observer.complete();
-              return;
-            case 1:
-            default:
-              observer.error(stdError || stdOutput);
+          case 0:
+            observer.next(stdOutput);
+            observer.complete();
+            return;
+          case 1:
+          default:
+            observer.error(stdError || stdOutput);
           }
         }),
     );

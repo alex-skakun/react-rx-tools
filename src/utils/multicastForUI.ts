@@ -1,7 +1,6 @@
 import { BehaviorSubject, isObservable, MonoTypeOperatorFunction, Observable, pipe, ReplaySubject, share } from 'rxjs';
 import { isNonEmptyArray } from 'value-guards';
 
-
 export function multicastForUI<T>(source: Observable<T>): Observable<T>;
 export function multicastForUI<T>(source: Observable<T>, initialValue: T): Observable<T>;
 export function multicastForUI<T>(): MonoTypeOperatorFunction<T>;

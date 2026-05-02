@@ -1,6 +1,121 @@
-# react-rx-tools
+react-rx-tools
+==============
 
 An easy-to-use toolkit for React.js that lets you use RxJS observables directly in your components.
+
+> ### Version 3.0.0
+> 
+> #### New features
+> 
+> 
+> #### Breaking changes
+> 
+> 
+> #### Deprecations
+> 
+
+## TOC
+
+* [Components](#components)
+  * [Render$](#render)
+  * [Output$](#output)
+  * [createRxComponent()](#createrxcomponent)
+* [Hooks](#hooks)
+  * [useSubscription()](#usesubscription)
+  * [useObservable()](#useobservable)
+  * [useTransitionObservable()](#usetransitionobservable)
+  * [useSubject()](#usesubject)
+  * [useRxEvent()](#userxevent)
+  * [useRxRef()](#userxref)
+  * [useRxCallback()](#userxcallback)
+  * [useExhaustCallback()](#useexhaustcallback)
+  * [useRxFactory()](#userxfactory)
+  * [useRxEffect()](#userxeffect)
+  * [useNextRender()](#usenextrender)
+  * [useValueChange()](#usevaluechange)
+  * [useRxMount()](#userxmount)
+  * [useRxUnmount()](#userxunmount)
+* [Utils](#utils)
+  * [multicastForUI()](#multicastforui)
+  * [catchErrorAndComplete()](#catcherrorandcomplete)
+  * [catchErrorAndRetry()](#catcherrorandretry)
+  * [distinctUntilRecordChanged()](#distinctuntilrecordchanged)
+  * [fromTransitionEnd()](#fromtransitionend)
+  * [fromAnimationEnd()](#fromanimationend)
+  * [fromFileSelect()](#fromfileselect)
+  * [fromFileReader()](#fromfilereader)
+  * [fromMediaQuery()](#frommediaquery)
+  * [fromResizeObserver()](#fromresizeobserver)
+  * [fromReportingObserver()](#fromreportingobserver)
+  * [rxIntersectionObserver()](#rxintersectionobserver)
+
+
+## Components
+
+### `<Render$>`
+
+### `<Output$>`
+
+### `createRxComponent()`
+
+
+## Hooks
+
+### `useSubscription()`
+
+### `useObservable()`
+
+### `useTransitionObservable()`
+
+### `useSubject()`
+
+### `useRxEvent()`
+
+### `useRxRef()`
+
+### `useRxCallback()`
+
+### `useExhaustCallback()`
+
+### `useRxFactory()`
+
+### `useRxEffect()`
+
+### `useNextRender()`
+
+### `useValueChange()`
+
+### `useRxMount()`
+
+### `useRxUnmount()`
+
+
+## Utils
+
+### `multicastForUI()`
+
+### `catchErrorAndComplete()`
+
+### `catchErrorAndRetry()`
+
+### `distinctUntilRecordChanged()`
+
+### `fromTransitionEnd()`
+
+### `fromAnimationEnd()`
+
+### `fromFileSelect()`
+
+### `fromFileReader()`
+
+### `fromMediaQuery()`
+
+### `fromResizeObserver()`
+
+### `fromReportingObserver()`
+
+### `rxIntersectionObserver()`
+
 
 ## Custom hook `useObservable()`
 

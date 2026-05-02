@@ -1,4 +1,15 @@
 [test]
 preload = "./setupTests.ts"
+onlyFailures = true
+randomize = true
+reporter = {
+  junit = "_reports/junit.xml"
+}
 coverageSkipTestFiles = true
-coverageIgnoreSourcemaps = true
+coverageIgnoreSourcemaps = false
+coverageReporter = ["text", "lcov"]
+coverageDir = "_reports"
+coveragePathIgnorePatterns = [
+  "setupTests.ts",
+  "tools/**/*.*"
+]

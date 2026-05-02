@@ -1,17 +1,16 @@
+import { describe, expect, mock, test } from 'bun:test';
 import { renderHook } from '@testing-library/react';
 import { useEffect } from 'react';
-import { useDidMount } from './useDidMount';
-import { describe, expect, it, mock } from 'bun:test';
+import { useDidMount, useRxMount } from './useRxMount';
 
-describe('useDidMount()', () => {
-
-  it('should emit after component mounted', () => {
+describe('useRxMount()', () => {
+  test('should emit after component mounted', () => {
     const nextCallback = mock();
 
     renderHook(() => {
-      const didMount$ = useDidMount();
+      const mount$ = useRxMount();
 
-      didMount$.subscribe(nextCallback);
+      mount$.subscribe(nextCallback);
 
       useEffect(() => {
         expect(nextCallback).toHaveBeenCalledTimes(1);
@@ -21,13 +20,13 @@ describe('useDidMount()', () => {
     });
   });
 
-  it('should complete before component unmount', () => {
+  test('should complete before component unmount', () => {
     const completeCallback = mock();
 
     renderHook(() => {
-      const didMount$ = useDidMount();
+      const mount$ = useRxMount();
 
-      didMount$.subscribe({
+      mount$.subscribe({
         complete: completeCallback,
       });
 
@@ -41,17 +40,20 @@ describe('useDidMount()', () => {
     });
   });
 
-  it('should replay for late subscriber', () => {
+  test('should replay for late subscriber', () => {
     const nextCallback = mock();
 
     renderHook(async () => {
-      const didMount$ = useDidMount();
+      const mount$ = useRxMount();
 
       useEffect(() => {
-        didMount$.subscribe(nextCallback);
+        mount$.subscribe(nextCallback);
         expect(nextCallback).toHaveBeenCalledTimes(1);
       }, []);
     });
   });
 
+  test('accessible via alias useDidMount()', () => {
+    expect(Object.is(useRxMount, useDidMount)).toBeTrue();
+  });
 });

@@ -1,15 +1,14 @@
+import { describe, expect, mock, test } from 'bun:test';
 import { renderHook } from '@testing-library/react';
 import { useEffect } from 'react';
-import { useWillUnmount } from './useWillUnmount';
-import { describe, expect, it, mock } from 'bun:test';
+import { useRxUnmount, useWillUnmount } from './useRxUnmount';
 
-describe('useWillUnmount()', () => {
-
-  it('should emit before component unmounted', () => {
+describe('useRxUnmount()', () => {
+  test('should emit before component unmounted', () => {
     const nextCallback = mock();
 
     renderHook(() => {
-      const willUnmount$ = useWillUnmount();
+      const willUnmount$ = useRxUnmount();
 
       willUnmount$.subscribe(nextCallback);
 
@@ -25,11 +24,11 @@ describe('useWillUnmount()', () => {
     });
   });
 
-  it('should complete before component unmounted', () => {
+  test('should complete before component unmounted', () => {
     const completeCallback = mock();
 
     renderHook(() => {
-      const willUnmount$ = useWillUnmount();
+      const willUnmount$ = useRxUnmount();
 
       willUnmount$.subscribe({
         complete: completeCallback,
@@ -47,4 +46,7 @@ describe('useWillUnmount()', () => {
     });
   });
 
+  test('accessible via alias useWillUnmount()', () => {
+    expect(Object.is(useRxUnmount, useWillUnmount)).toBeTrue();
+  });
 });

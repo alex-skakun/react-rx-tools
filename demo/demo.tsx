@@ -1,51 +1,28 @@
-import {
-  ChangeEvent,
-  CSSProperties,
-  MouseEvent as ReactMouseEvent,
-  PropsWithChildren,
-  TransitionEvent as ReactTransitionEvent,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { ChangeEvent, PropsWithChildren, ReactElement, TransitionEvent as ReactTransitionEvent, useMemo, useRef, useState } from 'react';
 import { useFunction, useOnce } from 'react-cool-hooks';
 import { createRoot } from 'react-dom/client';
 import {
   animationFrames,
-  animationFrameScheduler,
-  buffer,
-  distinctUntilChanged,
+  buffer, distinctUntilChanged,
   filter,
   fromEvent,
   interval,
   map,
   merge,
   Observable,
-  of,
   pairwise,
   race,
   repeat,
   sample,
-  scheduled,
   startWith,
   switchMap,
   take,
   takeUntil,
   tap,
-  withLatestFrom,
 } from 'rxjs';
-import {
-  multicastForUI,
-  Output$,
-  Render$,
-  useObservable,
-  useRxEffect,
-  useRxEvent,
-  useRxRef,
-  useSubscription,
-  useValueChange,
-} from '../src';
-
+import { fromResizeObserver, multicastForUI, Output$, useObservable, useRxEffect, useRxEvent, useRxRef, useSubscription } from '../src';
+import { Accordion as AccordionRx } from './Accordion';
+import { customStyle } from 'react-cool-utils';
 
 const root = createRoot(document.getElementById('demoTest')!);
 
@@ -114,50 +91,57 @@ function Demo() {
         ]}
       />
     </div>
-    <Accordion label="expand settings" expanded={isExpanded}>
-      <div>
-        <label htmlFor="figureTypeSelect">Type: </label>
-        <select id="figureTypeSelect" defaultValue="square" onChange={onChange}>
-          <option value="square">Square</option>
-          <option value="circle">Circle</option>
-        </select>
-      </div>
-      <div>
-        <label htmlFor="figureTypeSelect">Type: </label>
-        <select id="figureTypeSelect" defaultValue="square" onChange={onChange}>
-          <option value="square">Square</option>
-          <option value="circle">Circle</option>
-        </select>
-      </div>
-      <div>
-        <label htmlFor="figureTypeSelect">Type: </label>
-        <select id="figureTypeSelect" defaultValue="square" onChange={onChange}>
-          <option value="square">Square</option>
-          <option value="circle">Circle</option>
-        </select>
-      </div>
-      <div>
-        <label htmlFor="figureTypeSelect">Type: </label>
-        <select id="figureTypeSelect" defaultValue="square" onChange={onChange}>
-          <option value="square">Square</option>
-          <option value="circle">Circle</option>
-        </select>
-      </div>
-      <div>
-        <label htmlFor="figureTypeSelect">Type: </label>
-        <select id="figureTypeSelect" defaultValue="square" onChange={onChange}>
-          <option value="square">Square</option>
-          <option value="circle">Circle</option>
-        </select>
-      </div>
-      <div>
-        <label htmlFor="figureTypeSelect">Type: </label>
-        <select id="figureTypeSelect" defaultValue="square" onChange={onChange}>
-          <option value="square">Square</option>
-          <option value="circle">Circle</option>
-        </select>
-      </div>
-    </Accordion>
+    <AccordionRx expanded={isExpanded}>
+      {({ expanding, collapsing, idle }) => (
+        <div>
+          {expanding && <h1>Expanding</h1>}
+          {collapsing && <h1>Collapsing</h1>}
+          {idle && <h1>IDLE</h1>}
+          <div>
+            <label htmlFor="figureTypeSelect">Type: </label>
+            <select id="figureTypeSelect" defaultValue="square" onChange={onChange}>
+              <option value="square">Square</option>
+              <option value="circle">Circle</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="figureTypeSelect">Type: </label>
+            <select id="figureTypeSelect" defaultValue="square" onChange={onChange}>
+              <option value="square">Square</option>
+              <option value="circle">Circle</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="figureTypeSelect">Type: </label>
+            <select id="figureTypeSelect" defaultValue="square" onChange={onChange}>
+              <option value="square">Square</option>
+              <option value="circle">Circle</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="figureTypeSelect">Type: </label>
+            <select id="figureTypeSelect" defaultValue="square" onChange={onChange}>
+              <option value="square">Square</option>
+              <option value="circle">Circle</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="figureTypeSelect">Type: </label>
+            <select id="figureTypeSelect" defaultValue="square" onChange={onChange}>
+              <option value="square">Square</option>
+              <option value="circle">Circle</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="figureTypeSelect">Type: </label>
+            <select id="figureTypeSelect" defaultValue="square" onChange={onChange}>
+              <option value="square">Square</option>
+              <option value="circle">Circle</option>
+            </select>
+          </div>
+        </div>
+      )}
+    </AccordionRx>
 
     {
       type === 'square'
@@ -191,12 +175,13 @@ type WorkingSlideEffect = SlideEffect.Next | SlideEffect.Previous;
 
 interface SlideControls {
   goTo(slidId: SlideID, effect?: WorkingSlideEffect): void;
+
   back(): void;
 }
 
 interface Slide {
   id: SlideID;
-  renderContent: (controls: SlideControls) => JSX.Element;
+  renderContent: (controls: SlideControls) => ReactElement;
 }
 
 type SliderViewProps<T extends Record<SlideID, Slide>> = {
@@ -209,7 +194,7 @@ function SliderView<T extends Record<SlideID, Slide>>({
   slides,
   initialSlide,
   onSlideChange,
-}: SliderViewProps<T>): JSX.Element {
+}: SliderViewProps<T>): ReactElement {
   const slidesContainerRef = useRef<HTMLDivElement>(null);
   const slidesMap = useMemo<Map<SlideID, Slide>>(() => {
     return new Map(slides.map(slide => [slide.id, slide]));
@@ -274,10 +259,10 @@ function getNewSlidesBeforeEffect(
 ): (prev: DisplayedSlides) => DisplayedSlides {
   return (prev: DisplayedSlides): DisplayedSlides => {
     switch (effect) {
-    case SlideEffect.Next:
-      return [...prev, slideToGo] as DisplayedSlides;
-    case SlideEffect.Previous:
-      return [slideToGo, ...prev] as DisplayedSlides;
+      case SlideEffect.Next:
+        return [...prev, slideToGo] as DisplayedSlides;
+      case SlideEffect.Previous:
+        return [slideToGo, ...prev] as DisplayedSlides;
     }
   };
 }
@@ -285,70 +270,12 @@ function getNewSlidesBeforeEffect(
 function getNewSlidesAfterEffect(effect: WorkingSlideEffect): (prev: DisplayedSlides) => DisplayedSlides {
   return (prev: DisplayedSlides): DisplayedSlides => {
     switch (effect) {
-    case SlideEffect.Next:
-      return [prev[1]] as DisplayedSlides;
-    case SlideEffect.Previous:
-      return [prev[0]];
+      case SlideEffect.Next:
+        return [prev[1]] as DisplayedSlides;
+      case SlideEffect.Previous:
+        return [prev[0]];
     }
   };
-}
-
-type AccordionProps = {
-  label: string;
-  expanded?: boolean;
-};
-
-function Accordion({ expanded = false, label, children }: PropsWithChildren<AccordionProps>): JSX.Element {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const getHeight = useFunction(() => {
-    return `${containerRef.current!.scrollHeight}px`;
-  });
-  const expanded$ = useValueChange(expanded);
-  const [click$, onClick] = useRxEvent<ReactMouseEvent<HTMLButtonElement>>();
-  const style$ = useOnce(() => expanded$.pipe(
-    switchMap(toTogglerFrom(click$)),
-    map(toAccordionHeight),
-    withLatestFrom(isReducedMotion$),
-    switchMap(([height, isReducedMotion], index) => {
-      if (!index || isReducedMotion) {
-        return of(height);
-      }
-
-      return height === 'auto'
-        ? fromTransitionEnd(containerRef.current!, 'height')
-          .pipe(
-            map(() => height),
-            startWith(getHeight()),
-          )
-        : scheduled([getHeight(), height], animationFrameScheduler);
-    }),
-    distinctUntilChanged(),
-    map(toHeightStyle),
-  ));
-
-  return <section>
-    <button onClick={onClick}>{label}</button>
-    <Render$ $={style$}>
-      {style => <div className="accordion-content" ref={containerRef} style={style}>{children}</div>}
-    </Render$>
-  </section>;
-}
-
-function toTogglerFrom(source: Observable<unknown>): (initValue: boolean) => Observable<boolean> {
-  return (value: boolean): Observable<boolean> => {
-    return source.pipe(
-      map(() => value = !value),
-      startWith(value),
-    );
-  };
-}
-
-function toAccordionHeight(isExpanded: boolean): 'auto' | '0px' {
-  return isExpanded ? 'auto' : '0px';
-}
-
-function toHeightStyle(height: string): CSSProperties {
-  return { height };
 }
 
 const isReducedMotion$ = multicastForUI(new Observable(subscriber => {
@@ -365,28 +292,6 @@ const isReducedMotion$ = multicastForUI(new Observable(subscriber => {
 }));
 
 isReducedMotion$.subscribe();
-
-function fromTransitionEnd<T extends Element>(
-  element: T,
-  propertyName: string | string[],
-): Observable<T> {
-  return of(null)
-    .pipe(
-      withLatestFrom(isReducedMotion$),
-      switchMap(([, isReducedMotion]) => {
-        return isReducedMotion
-          ? scheduled([element], animationFrameScheduler)
-          : fromEvent<TransitionEvent>(element, 'transitionend')
-            .pipe(
-              filter(event => {
-                return event.target === element && event.propertyName === propertyName;
-              }),
-              take(1),
-              map(() => element),
-            );
-      }),
-    );
-}
 
 type CapturePoint = {
   x: number,
@@ -418,14 +323,14 @@ function fromDragging<T extends Element>(element: T, onCapture: () => void, onRe
 function fromCapturing(element: Element) {
   const preventDefault = (event: Event) => event.preventDefault();
   const isOneTouch = (event: TouchEvent) => event.touches.length === 1;
-  const mouseEventToCapturePoint = ({ clientX, clientY }: MouseEvent): CapturePoint => {
+  const mouseEventToCapturePoint = ({ pageX, pageY, offsetX, offsetY }: MouseEvent): CapturePoint => {
     const { x, y } = element.getBoundingClientRect();
 
     return {
-      x: clientX,
-      y: clientY,
-      captureX: Math.round(clientX - x),
-      captureY: Math.round(clientY - y),
+      x: pageX,
+      y: pageY,
+      captureX: Math.round(offsetX - x),
+      captureY: Math.round(offsetY - y),
     };
   };
   const touchEventToCapturePoint = ({ touches }: TouchEvent): CapturePoint => {
@@ -514,4 +419,29 @@ function fromReleasing() {
     .pipe(
       take(1),
     );
+}
+
+function AutoFitBlock({ children }: PropsWithChildren): ReactElement {
+  const [ref$, ref] = useRxRef<HTMLDivElement>();
+  const style = useObservable(() => ref$.pipe(
+    switchMap((wrapperEl) => fromResizeObserver(wrapperEl, { box: 'border-box' })),
+    map(({ borderBoxSize, contentRect }) => (
+      `${Math.round(borderBoxSize?.[0]?.blockSize ?? contentRect.height)}px`
+    )),
+    sample(animationFrames()),
+    distinctUntilChanged(),
+    startWith('auto'),
+    map((height) => customStyle({
+      height,
+      overflowY: height === 'auto' ? 'unset' : 'hidden',
+    })),
+  ));
+
+  return (
+    <div style={style}>
+      <div ref={ref}>
+        {children}
+      </div>
+    </div>
+  );
 }

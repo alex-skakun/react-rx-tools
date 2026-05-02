@@ -1,9 +1,24 @@
-import { copyFile, readdir, exists } from 'node:fs/promises';
+import { glob } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-import { asyncScheduler, catchError, defer, forkJoin, map, mergeMap, Observable, of, scheduled, switchMap, toArray } from 'rxjs';
+import {
+  asyncScheduler,
+  catchError,
+  defaultIfEmpty,
+  defer,
+  EMPTY,
+  filter,
+  forkJoin,
+  map,
+  mergeMap,
+  Observable,
+  of,
+  scheduled,
+  switchMap,
+  toArray,
+} from 'rxjs';
 
-import { alterPackage, readFileAsText } from './utils';
+import { alterPackage } from './utils';
 
 const propertiesToRemove = [
   'scripts',
@@ -43,25 +58,16 @@ export function completePackage(
       map((fileLists) => (
         fileLists
           .flatMap((fileList) => fileList.split(/\s*\n+\s*/))
-          .filter((fileEntry) => !/^#/.test(fileEntry))
+          .filter((fileEntry) => fileEntry && !/^#/.test(fileEntry))
       )),
-      map((filesToIgnore) => (
-        filesToIgnore.map((pattern) => new RegExp(`^${pattern.replace(/\*/g, '.+?')}$`))
-      )),
-      switchMap((fileFilter) => (
-        defer(() => readdir(workDir)).pipe(
-          map((workDirFiles) => (
-            workDirFiles.filter((filePath) => !fileFilter.some((ignorePattern) => (
-              ignorePattern.test(filePath)
-            )))
-          )),
-        )
+      switchMap((filesToIgnore) => defer(() => glob('**/*.*', { cwd: workDir, exclude: filesToIgnore })).pipe(
+        toArray(),
       )),
       switchMap((filesToCopy) => (
         scheduled(filesToCopy, asyncScheduler).pipe(
           mergeMap((file) => (
-            copyFile(resolve(workDir, file), resolve(packageDir, file))
-          ), 3),
+            Bun.write(resolve(packageDir, file), Bun.file(resolve(workDir, file)))
+          ), 1),
           toArray(),
         )
       )),
@@ -74,8 +80,13 @@ export function completePackage(
 }
 
 function safelyReadFileAsText(path: string): Observable<string> {
-  return defer(() => exists(path)).pipe(
-    switchMap((npmIgnoreExists) => (npmIgnoreExists ? readFileAsText(path) : of(''))),
-    catchError(() => of('')),
+  const file = Bun.file(path);
+
+  return of(Bun.file(path)).pipe(
+    switchMap((file) => file.exists()),
+    filter(Boolean),
+    switchMap(() => file.text()),
+    catchError(() => EMPTY),
+    defaultIfEmpty(''),
   );
 }

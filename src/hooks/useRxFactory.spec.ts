@@ -1,11 +1,11 @@
-import { describe, expect, it, mock } from 'bun:test';
+import { describe, expect, mock, test } from 'bun:test';
 import { renderHook } from '@testing-library/react';
-import { useRxFactory } from './useRxFactory';
 import { isObservable } from 'rxjs';
+import { useRxFactory } from './useRxFactory';
 import { useSubscription } from './useSubscription';
 
 describe('useRxFactory()', () => {
-  it('create an observable from factory', () => {
+  test('create an observable from factory', () => {
     const subscribe = mock();
     const unsubscribe = mock();
     const { result, unmount } = renderHook(() => {
@@ -27,7 +27,7 @@ describe('useRxFactory()', () => {
     expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
 
-  it('invoke factory when dependencies change', () => {
+  test('invoke factory when dependencies change', () => {
     const factory = mock();
     const { rerender } = renderHook(({ dep }) => {
       const $ = useRxFactory(factory, [dep]);

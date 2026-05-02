@@ -1,22 +1,21 @@
+import { describe, expect, test } from 'bun:test';
 import { fireEvent, render, renderHook } from '@testing-library/react';
 import { act, MouseEvent } from 'react';
 import { isObservable, skip, take } from 'rxjs';
 import { useRxEvent } from './useRxEvent';
 import { useSubscription } from './useSubscription';
-import { describe, expect, it } from 'bun:test';
 
 describe('useRxEvent()', () => {
-
-  it('should provide an observable and event listener callback', () => {
+  test('should provide an observable and event listener callback', () => {
     renderHook(() => {
       const [event$, onEvent] = useRxEvent();
 
-      expect(isObservable(event$)).toBeTruthy();
-      expect(typeof onEvent === 'function').toBeTruthy();
+      expect(isObservable(event$)).toBeTrue();
+      expect(onEvent).toBeFunction();
     });
   });
 
-  it('should emit when event happens', () => {
+  test('should emit when event happens', () => {
     const Test = () => {
       const [click$, onClick] = useRxEvent<MouseEvent>();
 
@@ -34,7 +33,7 @@ describe('useRxEvent()', () => {
     });
   });
 
-  it('should transform event to event type', () => {
+  test('should transform event to event type', () => {
     const Test = () => {
       const [click$, onClick] = useRxEvent<MouseEvent, string>((event) => event.type);
 
@@ -52,7 +51,7 @@ describe('useRxEvent()', () => {
     });
   });
 
-  it('should transform event using updated props', () => {
+  test('should transform event using updated props', () => {
     const Test = ({ p1 }: { p1: string }) => {
       const [click$, onClick] = useRxEvent<MouseEvent, string>(() => p1);
 
@@ -79,5 +78,4 @@ describe('useRxEvent()', () => {
       fireEvent.click(getByTestId('test'));
     });
   });
-
 });

@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { useOnce } from 'react-cool-hooks';
-import { Observable } from 'rxjs';
-import { _isObservableArgument, _isObservableFactoryArgument, _useObservableInternals } from '../internal';
+import { useFunction, useOnce } from 'react-cool-hooks';
+import { catchError, distinctUntilChanged, Observable, switchMap, throwError } from 'rxjs';
+import { _isObservableArgument, _isObservableFactoryArgument, _useObservableInternals, EMPTY_DEPS } from '../internal';
+import { useValueChange } from './useValueChange';
 
 /**
  * @summary Provides actual value from passed observable.
  */
 export function useObservable<T>(observable: Observable<T>): T | undefined;
-export function useObservable<T>(observableFactory: () => Observable<T>): T | undefined;
-export function useObservable<T>(...args: [Observable<T> | (() => Observable<T>)]): T | undefined {
+export function useObservable<T>(observableFactory: () => Observable<T>, deps?: unknown[]): T | undefined;
+export function useObservable<T>(...args: [Observable<T> | (() => Observable<T>), unknown[]?]): T | undefined {
   if (_isObservableArgument(args)) {
     return observableHook(...args);
   }
@@ -17,7 +18,7 @@ export function useObservable<T>(...args: [Observable<T> | (() => Observable<T>)
     return observableFactoryHook(...args);
   }
 
-  return undefined;
+  throw new Error('useObservable(): Unsupported set of arguments');
 }
 
 function observableHook<T>(observable: Observable<T>): T | undefined {
@@ -34,8 +35,18 @@ function observableHook<T>(observable: Observable<T>): T | undefined {
   return internalStateRef.reactStateUsed ? internalValue : internalStateRef.valueCache;
 }
 
-function observableFactoryHook<T>(observableFactory: () => Observable<T>): T | undefined {
-  const observable = useOnce(observableFactory);
+function observableFactoryHook<T>(observableFactory: () => Observable<T>, deps = EMPTY_DEPS): T | undefined {
+  const deps$ = useValueChange(deps);
+  const wrappedFactory = useFunction(observableFactory);
+  const observable$ = useOnce(() => deps$.pipe(
+    distinctUntilChanged((previous, current) => (
+      Object.is(current, previous) || current.every((el, i) => Object.is(el, previous[i]))
+    )),
+    switchMap(() => wrappedFactory()),
+    catchError((error) => (
+      throwError(() => new Error('useObservable(): Observable finished with error', { cause: error }))
+    )),
+  ));
 
-  return observableHook(observable);
+  return observableHook(observable$);
 }

@@ -1,35 +1,55 @@
-import { Fragment, ReactElement, ReactNode, useMemo } from 'react';
-import { from, ObservableInput } from 'rxjs';
-import { isDefined } from 'value-guards';
+import { forwardRef, Fragment, ReactElement, ReactNode, RefAttributes, useImperativeHandle, useMemo } from 'react';
+import { animationFrameScheduler, from, ObservableInput, observeOn } from 'rxjs';
+import { isPresent, Nullish, OverrideProperties } from 'value-guards';
 import { useTransitionObservable } from '../hooks/useTransitionObservable';
+import { useObservable } from '../hooks/useObservable';
+import { useRxEffect } from '../hooks/useRxEffect';
+import { markAsRxEffectObservable, RxEffectObservable } from '../internal';
 
-export type RenderAsyncDefinedOnlyProps<T> = {
-  definedOnly: true;
-  $: ObservableInput<T>;
-  fallback?: ReactNode;
-  children: (value: NonNullable<T>, pending: boolean) => ReactNode;
-};
-
-export type RenderAsyncBasicProps<T> = {
-  definedOnly?: false;
+export type Render$Props<T> = RefAttributes<RxEffectObservable> & {
+  definedOnly?: boolean;
+  withTransition?: boolean;
   $: ObservableInput<T>;
   fallback?: ReactNode;
   children: (value: T | undefined, pending: boolean) => ReactNode;
 };
 
-export type RenderAsyncProps<T> = RenderAsyncDefinedOnlyProps<T> | RenderAsyncBasicProps<T>;
+interface Render$ extends CallableFunction {
+  displayName: 'Render$';
 
-export function Render$<T>(props: RenderAsyncBasicProps<T>): ReactElement | null;
-export function Render$<T>(props: RenderAsyncDefinedOnlyProps<T>): ReactElement | null;
+  <T>(
+    props: OverrideProperties<Render$Props<T>, {
+      definedOnly: true,
+      children: (value: NonNullable<T>, pending: boolean) => ReactNode;
+    }>,
+  ): ReactElement | null;
 
-export function Render$<T>({ $: source, definedOnly, fallback, children }: RenderAsyncProps<T>): ReactElement | null {
+  <T>(
+    props: OverrideProperties<Render$Props<T>, {
+      definedOnly?: false,
+      children: (value: Nullish<T>, pending: boolean) => ReactNode;
+    }>,
+  ): ReactElement | null;
+}
+
+export const Render$ = forwardRef<RxEffectObservable, Omit<Render$Props<unknown>, 'ref'>>((
+  { definedOnly, withTransition = false, $: source, fallback, children },
+  forwardedRef,
+): ReactElement | null => {
   const observable = useMemo(() => from(source), [source]);
-  const [pending, value] = useTransitionObservable(observable);
+  const [pending, value] = withTransition ? useTransitionObservable(observable) : [false, useObservable(observable)];
+  const effect$ = useRxEffect();
+
+  useImperativeHandle(
+    forwardedRef,
+    () => markAsRxEffectObservable(effect$.pipe(observeOn(animationFrameScheduler))),
+    [],
+  );
 
   if (definedOnly) {
     return (
       <Fragment>
-        {isDefined(value) ? (children(value, pending) ?? fallback ?? null) : (fallback ?? null)}
+        {isPresent(value) ? (children(value, pending) ?? fallback ?? null) : (fallback ?? null)}
       </Fragment>
     );
   } else {
@@ -39,6 +59,6 @@ export function Render$<T>({ $: source, definedOnly, fallback, children }: Rende
       </Fragment>
     );
   }
-}
+}) as Render$;
 
 Render$.displayName = 'Render$';
