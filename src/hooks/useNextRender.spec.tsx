@@ -43,7 +43,7 @@ describe('useNextRender()', () => {
       const { getByTestId } = render(<Component/>);
 
       expect(getByTestId('container')?.textContent).toBe('test-1');
-      await Bun.sleep(1);
+      await Bun.sleep(10);
       expect(getByTestId('container')?.textContent).toBe('test-2');
     });
   });
@@ -70,7 +70,7 @@ describe('useNextRender()', () => {
     const { getByTestId } = render(<Component/>);
 
     expect(getByTestId('container')?.textContent).toBe('test-1');
-    await Bun.sleep(1);
+    await Bun.sleep(10);
     expect(getByTestId('container')?.textContent).toBe('test-2');
   });
 
@@ -92,7 +92,7 @@ describe('useNextRender()', () => {
     const { getByTestId } = render(<Component/>);
 
     expect(getByTestId('container')?.textContent).toBe('test-1');
-    await Bun.sleep(1);
+    await Bun.sleep(10);
     expect(getByTestId('container')?.textContent).toBe('test-2');
   });
 
@@ -113,7 +113,7 @@ describe('useNextRender()', () => {
     const { getByTestId } = render(<Component/>);
 
     expect(getByTestId('container')?.textContent).toBe('test-1');
-    await Bun.sleep(1);
+    await Bun.sleep(10);
     expect(getByTestId('container')?.textContent).toBe('test-2');
   });
 

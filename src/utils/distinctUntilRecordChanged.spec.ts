@@ -23,9 +23,10 @@ describe('distinctUntilRecordChanged()', () => {
     const onNext = mock();
 
     from([
-      { value: 1 },
-      { value: 1 },
-      { value: 2 },
+      { value: 1, key: 'a' },
+      { value: 1, key: 'a' },
+      { value: 2, key: 'a' },
+      { value: 2, key: 'a' },
       { value: 2 },
     ])
       .pipe(
@@ -33,6 +34,6 @@ describe('distinctUntilRecordChanged()', () => {
       )
       .subscribe(onNext);
 
-    expect(onNext).toHaveBeenCalledTimes(2);
+    expect(onNext).toHaveBeenCalledTimes(3);
   });
 });
