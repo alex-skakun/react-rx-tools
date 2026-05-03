@@ -12,3 +12,5 @@ bunfig.toml
 src
 tools
 demo
+_reports
+testTypes

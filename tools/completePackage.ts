@@ -8,13 +8,13 @@ import {
   defer,
   EMPTY,
   filter,
-  forkJoin,
+  forkJoin, from,
   map,
   mergeMap,
   Observable,
   of,
   scheduled,
-  switchMap,
+  switchMap, tap,
   toArray,
 } from 'rxjs';
 
@@ -60,7 +60,15 @@ export function completePackage(
           .flatMap((fileList) => fileList.split(/\s*\n+\s*/))
           .filter((fileEntry) => fileEntry && !/^#/.test(fileEntry))
       )),
-      switchMap((filesToIgnore) => defer(() => glob('**/*.*', { cwd: workDir, exclude: filesToIgnore })).pipe(
+      switchMap((filesToIgnore) => defer(() => glob('**/*', { cwd: workDir, exclude: filesToIgnore })).pipe(
+        mergeMap((foundPath) => forkJoin([
+          of(foundPath),
+          from(Bun.file(foundPath).stat()).pipe(
+            map((stat) => stat.isFile())
+          )
+        ])),
+        filter(([, isFile]) => isFile),
+        map(([foundPath]) => foundPath),
         toArray(),
       )),
       switchMap((filesToCopy) => (
