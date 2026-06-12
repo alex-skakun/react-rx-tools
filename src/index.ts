@@ -20,6 +20,7 @@ export { useValueChange } from './hooks/useValueChange';
 export { useSubject } from './hooks/useSubject';
 export { useRxEffect } from './hooks/useRxEffect';
 export { useRxCallback, type RxCallback, type PipeFactory } from './hooks/useRxCallback';
+export { useExhaustCallback } from './hooks/useExhaustCallback';
 export { useRxFactory } from './hooks/useRxFactory';
 export { useNextRender, type FromNextRender } from './hooks/useNextRender';
 
